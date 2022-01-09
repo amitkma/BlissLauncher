@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foundation.e.blisslauncher.core.customviews
 
 import android.content.Context
@@ -10,7 +25,9 @@ import foundation.e.blisslauncher.core.blur.BlurWallpaperProvider
 import foundation.e.blisslauncher.core.blur.ShaderBlurDrawable
 import foundation.e.blisslauncher.core.runOnMainThread
 
-class BlurBackgroundView(context: Context, attrs: AttributeSet?) : View(context, attrs), Insettable,
+class BlurBackgroundView(context: Context, attrs: AttributeSet?) :
+    View(context, attrs),
+    Insettable,
     BlurWallpaperProvider.Listener {
 
     private val blurWallpaperProvider by lazy { BlurWallpaperProvider.getInstance(context) }
@@ -66,10 +83,10 @@ class BlurBackgroundView(context: Context, attrs: AttributeSet?) : View(context,
     private fun createFullBlurDrawable() {
         fullBlurDrawable?.let { if (isAttachedToWindow) it.stopListening() }
         fullBlurDrawable = blurWallpaperProvider.createDrawable().apply {
-                callback = blurDrawableCallback
-                setBounds(left, top, right, bottom)
-                if (isAttachedToWindow) startListening()
-            }
+            callback = blurDrawableCallback
+            setBounds(left, top, right, bottom)
+            if (isAttachedToWindow) startListening()
+        }
     }
 
     override fun onEnabledChanged() {

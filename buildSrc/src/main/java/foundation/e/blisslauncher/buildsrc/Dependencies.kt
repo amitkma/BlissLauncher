@@ -1,14 +1,12 @@
 package foundation.e.blisslauncher.buildsrc
 
 object Versions {
-    const val compile_sdk = 29
-    const val min_sdk = 25
-    const val target_sdk = 29
-    const val android_gradle_plugin = "7.0.2"
+    const val android_gradle_plugin = "7.0.4"
     const val dexcount_gradle_plugin = "2.0.0"
     const val kotlin = "1.5.10"
     const val timber = "4.7.1"
     const val junit = "4.12"
+    const val ktlint = "0.43.2"
     const val robolectric = "4.3"
     const val mockK = "1.9.3"
     const val firebase_core = "17.1.0"
@@ -21,7 +19,6 @@ object Versions {
     const val rxjava = "2.2.11"
     const val rxandroid = "2.1.1"
     const val rxkotlin = "2.4.0"
-    const val ktlint = "0.34.2"
 }
 
 object Libs {
@@ -125,5 +122,46 @@ object Libs {
     object OkHttp {
         const val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
         const val loggingInterceptor = "com.squareup.okhttp3:logging-interceptor:${Versions.okhttp}"
+    }
+}
+
+enum class ReleaseType(private val level: Int) {
+    SNAPSHOT(0),
+    DEV(1),
+    ALPHA(10),
+    BETA(20),
+    RC(60),
+    RELEASE(100);
+
+    fun isEqualOrMoreStableThan(other: ReleaseType): Boolean = level >= other.level
+
+    fun isLessStableThan(other: ReleaseType): Boolean = level < other.level
+}
+
+object DependencyUpdates {
+    private val stableKeywords = arrayOf("RELEASE", "FINAL", "GA")
+    private val releaseRegex = "^[0-9,.v-]+(-r)?$".toRegex(RegexOption.IGNORE_CASE)
+    private val rcRegex = releaseKeywordRegex("rc")
+    private val betaRegex = releaseKeywordRegex("beta")
+    private val alphaRegex = releaseKeywordRegex("alpha")
+    private val devRegex = releaseKeywordRegex("dev")
+
+    @JvmStatic
+    fun versionToRelease(version: String): ReleaseType {
+        val stableKeyword = stableKeywords.any { version.toUpperCase().contains(it) }
+        if (stableKeyword) return ReleaseType.RELEASE
+
+        return when {
+            releaseRegex.matches(version) -> ReleaseType.RELEASE
+            rcRegex.matches(version) -> ReleaseType.RC
+            betaRegex.matches(version) -> ReleaseType.BETA
+            alphaRegex.matches(version) -> ReleaseType.ALPHA
+            devRegex.matches(version) -> ReleaseType.DEV
+            else -> ReleaseType.SNAPSHOT
+        }
+    }
+
+    private fun releaseKeywordRegex(keyword: String): Regex {
+        return "^[0-9,.v-]+(-$keyword[0-9]*)$".toRegex(RegexOption.IGNORE_CASE)
     }
 }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foundation.e.blisslauncher.features.test
 /*
  * Copyright (C) 2008 The Android Open Source Project
@@ -148,8 +163,10 @@ class VariantDeviceProfile(
         )
 
         // If there isn't enough vertical cell padding with the labels displayed, hide the labels.
-        val workspaceCellPaddingY: Float = (profile.cellSize.y - profile.iconSizePx -
-            iconDrawablePaddingPx - profile.iconTextSizePx).toFloat()
+        val workspaceCellPaddingY: Float = (
+            profile.cellSize.y - profile.iconSizePx -
+                iconDrawablePaddingPx - profile.iconTextSizePx
+            ).toFloat()
         if (workspaceCellPaddingY < profile.iconDrawablePaddingPx * 2) {
             profile.adjustToHideWorkspaceLabels()
         }
@@ -210,8 +227,10 @@ class VariantDeviceProfile(
             res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_bottom_padding)
         hotseatBarSidePaddingPx =
             res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_side_padding)
-        hotseatBarSizePx = ResourceUtils.pxFromDp(inv.iconSize, dm) + (res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_extra_vertical_size) +
-            hotseatBarTopPaddingPx + hotseatBarBottomPaddingPx)
+        hotseatBarSizePx = ResourceUtils.pxFromDp(inv.iconSize, dm) + (
+            res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_extra_vertical_size) +
+                hotseatBarTopPaddingPx + hotseatBarBottomPaddingPx
+            )
         workspacePageIndicatorHeight =
             res.getDimensionPixelSize(R.dimen.dotSize) * 2 + res.getDimensionPixelSize(R.dimen.dotPadding) * 2
 
@@ -276,19 +295,25 @@ class VariantDeviceProfile(
     ) {
         val invIconSizePx = inv.iconSize
         iconSizePx =
-            (Utilities.pxFromDp(
-                invIconSizePx,
+            (
+                Utilities.pxFromDp(
+                    invIconSizePx,
+                    dm
+                ) * scale
+                ).toInt()
+        iconTextSizePx = (
+            Utilities.pxFromSp(
+                inv.iconTextSize,
                 dm
-            ) * scale).toInt()
-        iconTextSizePx = (Utilities.pxFromSp(
-            inv.iconTextSize,
-            dm
-        ) * scale).toInt()
+            ) * scale
+            ).toInt()
         Log.i("Iconsizepx", "" + iconSizePx + " " + invIconSizePx)
         iconDrawablePaddingPx =
             res.getDimensionPixelSize(R.dimen.dynamic_grid_icon_drawable_padding)
-        cellHeightPx = (iconSizePx + iconDrawablePaddingPx +
-            Utilities.calculateTextHeight(iconTextSizePx.toFloat()) * 1)
+        cellHeightPx = (
+            iconSizePx + iconDrawablePaddingPx +
+                Utilities.calculateTextHeight(iconTextSizePx.toFloat()) * 1
+            )
 
         val cellYPadding = (cellSize.y - cellHeightPx) / 2
         if (iconDrawablePaddingPx > cellYPadding) {
@@ -308,13 +333,15 @@ class VariantDeviceProfile(
         res: Resources
     ) {
         val folderBottomPanelSize =
-            (res.getDimensionPixelSize(R.dimen.folder_label_padding_top) +
-                res.getDimensionPixelSize(R.dimen.folder_label_padding_bottom) +
-                Utilities.calculateTextHeight(
-                    res.getDimension(
-                        R.dimen.folder_label_text_size
+            (
+                res.getDimensionPixelSize(R.dimen.folder_label_padding_top) +
+                    res.getDimensionPixelSize(R.dimen.folder_label_padding_bottom) +
+                    Utilities.calculateTextHeight(
+                        res.getDimension(
+                            R.dimen.folder_label_text_size
+                        )
                     )
-                ))
+                )
         updateFolderCellSize(1f, dm, res)
         // Don't let the folder get too close to the edges of the screen.
         val folderMargin = edgeMarginPx
@@ -340,10 +367,12 @@ class VariantDeviceProfile(
         res: Resources
     ) {
         folderChildIconSizePx =
-            (Utilities.pxFromDp(
-                inv.iconSize,
-                dm
-            ) * scale).toInt()
+            (
+                Utilities.pxFromDp(
+                    inv.iconSize,
+                    dm
+                ) * scale
+                ).toInt()
         folderChildTextSizePx =
             (res.getDimensionPixelSize(R.dimen.folder_child_text_size) * scale).toInt()
         val textHeight =
@@ -387,13 +416,15 @@ class VariantDeviceProfile(
             result.x =
                 calculateCellWidth(
                     availableWidthPx - padding.x -
-                        cellLayoutPaddingLeftRightPx * 2, inv.numColumns
+                        cellLayoutPaddingLeftRightPx * 2,
+                    inv.numColumns
                 )
             Log.i("Padding", "$availableHeightPx, $padding, $cellLayoutBottomPaddingPx")
             result.y =
                 calculateCellHeight(
                     availableHeightPx - padding.y -
-                        cellLayoutBottomPaddingPx, inv.numRows
+                        cellLayoutBottomPaddingPx,
+                    inv.numRows
                 )
             return result
         }
@@ -418,15 +449,19 @@ class VariantDeviceProfile(
             // between all icons
             // The amount of screen space available for left/right padding.
             var availablePaddingX = Math.max(
-                0, widthPx - (inv.numColumns * cellWidthPx +
-                    (inv.numColumns - 1) * cellWidthPx)
+                0,
+                widthPx - (
+                    inv.numColumns * cellWidthPx +
+                        (inv.numColumns - 1) * cellWidthPx
+                    )
             )
             availablePaddingX = Math.min(
                 availablePaddingX.toFloat(),
                 widthPx * MAX_HORIZONTAL_PADDING_PERCENT
             ).toInt()
             val availablePaddingY = Math.max(
-                0, heightPx - topWorkspacePadding - paddingBottom -
+                0,
+                heightPx - topWorkspacePadding - paddingBottom -
                     2 * inv.numRows * cellHeightPx - hotseatBarTopPaddingPx -
                     hotseatBarBottomPaddingPx
             )

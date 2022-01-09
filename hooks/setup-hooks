@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# This script setups symlink from .git/hooks directory to this directory.
+ln -s -f ../../hooks/pre-commit .git/hooks/pre-commit

@@ -5,7 +5,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
-apply from: '../spotless/spotless.gradle'
 
 // Manifest version information!
 def versionMajor = 1
@@ -13,13 +12,13 @@ def versionMinor = 3
 def versionPatch = 2
 
 android {
-    compileSdkVersion Versions.compile_sdk
+    compileSdkVersion buildConfig.compileSdk
     defaultConfig {
         applicationId "foundation.e.blisslauncher"
-        minSdkVersion Versions.min_sdk
-        targetSdkVersion Versions.target_sdk
-        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
-        versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+        minSdkVersion buildConfig.minSdk
+        targetSdkVersion buildConfig.targetSdk
+        versionCode buildConfig.version.code
+        versionName buildConfig.version.fullName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         renderscriptTargetApi 28

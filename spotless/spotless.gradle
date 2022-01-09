@@ -1,17 +1,33 @@
+import foundation.e.blisslauncher.buildsrc.Versions
+
 apply plugin: 'com.diffplug.spotless'
+
 spotless {
     java {
         target '**/*.java'
-        importOrder() // standard import order
+        importOrder()
         removeUnusedImports() // removes any unused imports
+        licenseHeaderFile rootProject.file('spotless/copyright.kt')
     }
     kotlin {
         target "**/*.kt"
-        ktlint().userData([disabled_rules:"no-wildcard-imports"])
+        targetExclude("$buildDir/**/*.kt")
+        targetExclude('bin/**/*.kt')
+        targetExclude '**/spotless/*.kt'
+        ktlint(Versions.ktlint)
+        licenseHeaderFile rootProject.file('spotless/copyright.kt')
     }
     kotlinGradle {
         // same as kotlin, but for .gradle.kts files (defaults to '*.gradle.kts')
         target '*.gradle.kts', 'additionalScripts/*.gradle.kts'
         ktlint()
+    }
+    format 'misc', {
+        // define the files to apply `misc` to
+        target '*.gradle', '*.md', '.gitignore'
+
+        // define the steps to apply to those files
+        trimTrailingWhitespace()
+        endWithNewline()
     }
 }

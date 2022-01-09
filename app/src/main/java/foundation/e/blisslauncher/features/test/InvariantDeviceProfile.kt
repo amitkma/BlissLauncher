@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foundation.e.blisslauncher.features.test
 /*
  * Copyright (C) 2015 The Android Open Source Project
@@ -25,12 +40,12 @@ import android.view.WindowManager
 import foundation.e.blisslauncher.R
 import foundation.e.blisslauncher.core.Utilities
 import foundation.e.blisslauncher.quickstep.MainThreadInitializedObject
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.util.ArrayList
 import kotlin.math.hypot
 import kotlin.math.pow
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserException
 
 open class InvariantDeviceProfile {
 
@@ -184,10 +199,12 @@ open class InvariantDeviceProfile {
             context.resources.getXml(R.xml.device_profiles).use { parser ->
                 val depth = parser.depth
                 var type: Int
-                while ((parser.next().also {
+                while ((
+                    parser.next().also {
                         type = it
                     } != XmlPullParser.END_TAG ||
-                        parser.depth > depth) && type != XmlPullParser.END_DOCUMENT
+                        parser.depth > depth
+                    ) && type != XmlPullParser.END_DOCUMENT
                 ) {
                     if (type == XmlPullParser.START_TAG && "profile" == parser.name) {
                         val a = context.obtainStyledAttributes(
@@ -278,8 +295,10 @@ open class InvariantDeviceProfile {
         var density = DisplayMetrics.DENSITY_XXXHIGH
         for (i in densityBuckets.indices.reversed()) {
             val expectedSize =
-                (ICON_SIZE_DEFINED_IN_APP_DP * densityBuckets[i] /
-                    DisplayMetrics.DENSITY_DEFAULT)
+                (
+                    ICON_SIZE_DEFINED_IN_APP_DP * densityBuckets[i] /
+                        DisplayMetrics.DENSITY_DEFAULT
+                    )
             if (expectedSize >= requiredSize) {
                 density = densityBuckets[i]
             }
@@ -301,16 +320,19 @@ open class InvariantDeviceProfile {
     ): ArrayList<InvariantDeviceProfile> {
         // Sort the profiles by their closeness to the dimensions
         var pointsByNearness = points
-        pointsByNearness.sortWith(Comparator { a, b ->
-            java.lang.Float.compare(
-                dist(width, height, a.minWidthDps, a.minHeightDps), dist(
-                    width,
-                    height,
-                    b.minWidthDps,
-                    b.minHeightDps
+        pointsByNearness.sortWith(
+            Comparator { a, b ->
+                java.lang.Float.compare(
+                    dist(width, height, a.minWidthDps, a.minHeightDps),
+                    dist(
+                        width,
+                        height,
+                        b.minWidthDps,
+                        b.minHeightDps
+                    )
                 )
-            )
-        })
+            }
+        )
         return pointsByNearness
     }
 

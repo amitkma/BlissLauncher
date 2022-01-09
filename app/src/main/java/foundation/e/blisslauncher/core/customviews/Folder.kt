@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foundation.e.blisslauncher.core.customviews
 
 import android.animation.Animator
@@ -41,16 +56,21 @@ import foundation.e.blisslauncher.features.test.dragndrop.DragLayer
 import foundation.e.blisslauncher.features.test.dragndrop.DragOptions
 import foundation.e.blisslauncher.features.test.dragndrop.DragSource
 import foundation.e.blisslauncher.features.test.dragndrop.DropTarget
-import java.util.ArrayList
 import kotlinx.android.synthetic.main.activity_test.*
 import me.relex.circleindicator.CircleIndicator
+import java.util.ArrayList
 
 class Folder @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
-) : AbstractFloatingView(context, attrs), DragController.DragListener,
-    FolderTitleInput.OnBackKeyListener, FolderItem.FolderListener, View.OnFocusChangeListener,
-    OnEditorActionListener, DragSource, DropTarget {
+) : AbstractFloatingView(context, attrs),
+    DragController.DragListener,
+    FolderTitleInput.OnBackKeyListener,
+    FolderItem.FolderListener,
+    View.OnFocusChangeListener,
+    OnEditorActionListener,
+    DragSource,
+    DropTarget {
 
     private var mScrollAreaOffset: Int = 0
     private val MIN_FOLDERS_FOR_HARDWARE_OPTIMIZATION = 10
@@ -392,8 +412,8 @@ class Folder @JvmOverloads constructor(
             mDeviceProfile.cellHeightPx * 3 + resources.getDimensionPixelSize(R.dimen.folder_padding) * 2
         mContent.layoutParams?.height =
             (mDeviceProfile.cellHeightPx + mDeviceProfile.iconDrawablePaddingPx * 2) * 3 + resources.getDimensionPixelSize(
-                R.dimen.folder_padding
-            ) * 2
+            R.dimen.folder_padding
+        ) * 2
         // In case any children didn't come across during loading, clean up the folder accordingly
         folderIcon?.post {
             if (getItemCount() <= 1) {

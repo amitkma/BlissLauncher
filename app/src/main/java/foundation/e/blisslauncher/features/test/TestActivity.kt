@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foundation.e.blisslauncher.features.test
 
 import android.Manifest
@@ -97,7 +112,6 @@ import foundation.e.blisslauncher.features.shortcuts.ShortcutKey
 import foundation.e.blisslauncher.features.suggestions.AutoCompleteAdapter
 import foundation.e.blisslauncher.features.suggestions.SearchSuggestionUtil
 import foundation.e.blisslauncher.features.suggestions.SuggestionsResult
-import foundation.e.blisslauncher.features.test.LauncherState.*
 import foundation.e.blisslauncher.features.test.RotationHelper.REQUEST_NONE
 import foundation.e.blisslauncher.features.test.dragndrop.DragController
 import foundation.e.blisslauncher.features.test.dragndrop.DragLayer
@@ -129,7 +143,9 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionClickListener,
+class TestActivity :
+    BaseDraggingActivity(),
+    AutoCompleteAdapter.OnSuggestionClickListener,
     LauncherModel.Callbacks {
 
     private var mIsEditingName: Boolean = false
@@ -313,9 +329,11 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
             val cn = ComponentName(this, NotificationListener::class.java)
 
             val enabled =
-                permissionString != null && (permissionString.contains(cn.flattenToString()) || permissionString.contains(
-                    cn.flattenToShortString()
-                ))
+                permissionString != null && (
+                    permissionString.contains(cn.flattenToString()) || permissionString.contains(
+                        cn.flattenToShortString()
+                    )
+                    )
 
             if (!enabled) {
                 val launcherApps: LauncherApps =
@@ -424,9 +442,11 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
         overviewPanel = findViewById(R.id.overview_panel)
         hotseat = findViewById(R.id.hotseat)
 
-        launcherView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
+        launcherView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            )
         dragLayer.setup(dragController, workspace)
         mCancelTouchController = UiFactory.enableLiveUIChanges(this)
         workspace.setup(dragController)
@@ -612,16 +632,18 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
 
         mWeatherSetupTextView = findViewById<View>(R.id.weather_setup_textview)
         mWeatherPanel = findViewById(R.id.weather_panel)
-        mWeatherPanel.setOnClickListener(View.OnClickListener { v: View? ->
-            val launchIntent =
-                packageManager.getLaunchIntentForPackage(
-                    "foundation.e.weather"
-                )
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(launchIntent)
+        mWeatherPanel.setOnClickListener(
+            View.OnClickListener { v: View? ->
+                val launchIntent =
+                    packageManager.getLaunchIntentForPackage(
+                        "foundation.e.weather"
+                    )
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(launchIntent)
+                }
             }
-        })
+        )
         updateWeatherPanel()
 
         if (foundation.e.blisslauncher.features.weather.WeatherUtils.isWeatherServiceAvailable(
@@ -633,7 +655,8 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
-            mWeatherReceiver, IntentFilter(
+            mWeatherReceiver,
+            IntentFilter(
                 WeatherUpdateService.ACTION_UPDATE_FINISHED
             )
         )
@@ -677,20 +700,22 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
                     appWidgetInfo
                 ) as RoundedWidgetView
                 hostView.setAppWidget(id, appWidgetInfo)
-                getCompositeDisposable().add(DatabaseManager.getManager(this).getHeightOfWidget(id)
-                    .subscribeOn(Schedulers.from(AppExecutors.getInstance().diskIO()))
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ height: Int ->
-                        val widgetView = WidgetViewBuilder.create(this, hostView)
-                        if (height != 0) {
-                            val minHeight = hostView.appWidgetInfo.minResizeHeight
-                            val maxHeight = mDeviceProfile.availableHeightPx * 3 / 4
-                            val normalisedDifference = (maxHeight - minHeight) / 100
-                            val newHeight = minHeight + normalisedDifference * height
-                            widgetView.layoutParams.height = newHeight
-                        }
-                        addWidgetToContainer(widgetView)
-                    }) { obj: Throwable -> obj.printStackTrace() })
+                getCompositeDisposable().add(
+                    DatabaseManager.getManager(this).getHeightOfWidget(id)
+                        .subscribeOn(Schedulers.from(AppExecutors.getInstance().diskIO()))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ height: Int ->
+                            val widgetView = WidgetViewBuilder.create(this, hostView)
+                            if (height != 0) {
+                                val minHeight = hostView.appWidgetInfo.minResizeHeight
+                                val maxHeight = mDeviceProfile.availableHeightPx * 3 / 4
+                                val normalisedDifference = (maxHeight - minHeight) / 100
+                                val newHeight = minHeight + normalisedDifference * height
+                                widgetView.layoutParams.height = newHeight
+                            }
+                            addWidgetToContainer(widgetView)
+                        }) { obj: Throwable -> obj.printStackTrace() }
+                )
             }
         }
     }
@@ -786,9 +811,11 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
             }
             false
         }
-        launcherItems.sortWith(Comparator.comparing { launcherItem: LauncherItem ->
-            launcherItem.title.toString().lowercase(Locale.getDefault()).indexOf(query)
-        })
+        launcherItems.sortWith(
+            Comparator.comparing { launcherItem: LauncherItem ->
+                launcherItem.title.toString().lowercase(Locale.getDefault()).indexOf(query)
+            }
+        )
         if (launcherItems.size > 4) {
             suggestionsResult.launcherItems = launcherItems.subList(0, 4)
         } else {
@@ -830,9 +857,11 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
             set.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator) {
                     super.onAnimationStart(animation)
-                    (widgetPage.findViewById<View>(
-                        R.id.widget_resizer_seekbar
-                    ) as SeekBar).setOnSeekBarChangeListener(null)
+                    (
+                        widgetPage.findViewById<View>(
+                            R.id.widget_resizer_seekbar
+                        ) as SeekBar
+                        ).setOnSeekBarChangeListener(null)
                 }
 
                 override fun onAnimationCancel(animation: Animator) {
@@ -855,16 +884,20 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
     }
 
     fun hideKeyboard(view: View) {
-        val inputMethodManager = (getSystemService(
-            INPUT_METHOD_SERVICE
-        ) as InputMethodManager)
+        val inputMethodManager = (
+            getSystemService(
+                INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+            )
         inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     fun showKeyboard(view: View?) {
-        val inputMethodManager = (getSystemService(
-            INPUT_METHOD_SERVICE
-        ) as InputMethodManager)
+        val inputMethodManager = (
+            getSystemService(
+                INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+            )
         inputMethodManager.showSoftInput(view, 0)
     }
 
@@ -1273,8 +1306,10 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
         iconLayoutParams.height = (mDeviceProfile.cellHeightPx + topBottomPadding)
         iconLayoutParams.width = (mDeviceProfile.cellWidthPx + padding * 2).toInt()
 
-        view.setPadding(padding.toInt(),
-            (topBottomPadding / 2), padding.toInt(), topBottomPadding / 2)
+        view.setPadding(
+            padding.toInt(),
+            (topBottomPadding / 2), padding.toInt(), topBottomPadding / 2
+        )
         view.findViewById<View>(R.id.app_label).visibility = View.VISIBLE
         view.layoutParams = iconLayoutParams
         view.setWithText(true)
@@ -1285,13 +1320,17 @@ class TestActivity : BaseDraggingActivity(), AutoCompleteAdapter.OnSuggestionCli
     override fun onNewIntent(intent: Intent?) {
         TraceHelper.beginSection("NEW_INTENT")
         super.onNewIntent(intent)
-        val alreadyOnHome = hasWindowFocus() && (intent!!.flags and
-            Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
-            != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
+        val alreadyOnHome = hasWindowFocus() && (
+            intent!!.flags and
+                Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+            )
 
         // Check this condition before handling isActionMain, as this will get reset.
-        val shouldMoveToDefaultScreen = (alreadyOnHome && isInState(NORMAL) &&
-            AbstractFloatingView.getTopOpenView(this) == null)
+        val shouldMoveToDefaultScreen = (
+            alreadyOnHome && isInState(NORMAL) &&
+                AbstractFloatingView.getTopOpenView(this) == null
+            )
         val isActionMain = Intent.ACTION_MAIN == intent!!.action
         val internalStateHandled = InternalStateHandler
             .handleNewIntent(this, intent, isStarted)

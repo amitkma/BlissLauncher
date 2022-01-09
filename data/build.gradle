@@ -4,12 +4,11 @@ import foundation.e.blisslauncher.buildsrc.Versions
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply from: '../spotless/spotless.gradle'
 
 android {
-    compileSdkVersion Versions.compile_sdk
+    compileSdkVersion buildConfig.compileSdk
     defaultConfig {
-        minSdkVersion Versions.min_sdk
+        minSdkVersion buildConfig.minSdk
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
