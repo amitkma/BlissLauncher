@@ -1,10 +1,10 @@
-# Description
+## 🎯 Description
 
-Please include a summary of the change and which issue is fixed. List any dependencies that are required for this change.
+<!-- Please include a summary of the change and which issue is fixed. List any dependencies that are required for this change. -->
 
 Fixes # (issue)
 
-## Type of change
+## 🛠 Type of change
 
 Please delete options that are not relevant.
 
@@ -13,27 +13,27 @@ Please delete options that are not relevant.
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] This change requires a documentation update
 
-### 🎨 UI Changes
+## 🎨 UI Changes
 
-_Add relevant screenshots_
+<!-- Add relevant screenshots -->
 
 | Before | After |
 | --- | --- |
 | img | img |
 
-# How Has This Been Tested?
+## 🧪 How Has This Been Tested?
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+<!-- Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration -->
 
 - [ ] Test A
 - [ ] Test B
 
 **Test Configuration**:
-* Android version:
 * Hardware:
+* Android version:
 * BlissLauncher version:
 
-# Checklist:
+# ☑️ Checklist
 
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
