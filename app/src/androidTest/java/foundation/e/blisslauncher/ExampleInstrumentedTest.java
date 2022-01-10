@@ -37,6 +37,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.indin.blisslaunchero", appContext.getPackageName());
+        assertEquals("foundation.e.blisslauncher", appContext.getPackageName());
     }
 }

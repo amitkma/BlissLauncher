@@ -92,6 +92,10 @@ public class BlissLauncher extends Application {
         return mAppProvider;
     }
 
+    public int dummyFunction() {
+        return 10;
+    }
+
     public WidgetHost getAppWidgetHost() {
         return sAppWidgetHost;
     }
