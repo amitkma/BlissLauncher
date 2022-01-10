@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2010 The Android Open Source Project
+ * Copyright (c) 2010 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,68 +20,68 @@ import android.os.Handler;
 import android.os.SystemClock;
 
 public class Alarm implements Runnable {
-    // if we reach this time and the alarm hasn't been cancelled, call the listener
-    private long mAlarmTriggerTime;
+  // if we reach this time and the alarm hasn't been cancelled, call the listener
+  private long mAlarmTriggerTime;
 
-    // if we've scheduled a call to run() (ie called mHandler.postDelayed), this variable is true.
-    // We use this to avoid having multiple pending callbacks
-    private boolean mWaitingForCallback;
+  // if we've scheduled a call to run() (ie called mHandler.postDelayed), this variable is true.
+  // We use this to avoid having multiple pending callbacks
+  private boolean mWaitingForCallback;
 
-    private Handler mHandler;
-    private OnAlarmListener mAlarmListener;
-    private boolean mAlarmPending = false;
+  private Handler mHandler;
+  private OnAlarmListener mAlarmListener;
+  private boolean mAlarmPending = false;
 
-    public Alarm() {
-        mHandler = new Handler();
+  public Alarm() {
+    mHandler = new Handler();
+  }
+
+  public void setOnAlarmListener(OnAlarmListener alarmListener) {
+    mAlarmListener = alarmListener;
+  }
+
+  // Sets the alarm to go off in a certain number of milliseconds. If the alarm is already set,
+  // it's overwritten and only the new alarm setting is used
+  public void setAlarm(long millisecondsInFuture) {
+    long currentTime = SystemClock.uptimeMillis();
+    mAlarmPending = true;
+    long oldTriggerTime = mAlarmTriggerTime;
+    mAlarmTriggerTime = currentTime + millisecondsInFuture;
+
+    // If the previous alarm was set for a longer duration, cancel it.
+    if (mWaitingForCallback && oldTriggerTime > mAlarmTriggerTime) {
+      mHandler.removeCallbacks(this);
+      mWaitingForCallback = false;
     }
-
-    public void setOnAlarmListener(OnAlarmListener alarmListener) {
-        mAlarmListener = alarmListener;
+    if (!mWaitingForCallback) {
+      mHandler.postDelayed(this, mAlarmTriggerTime - currentTime);
+      mWaitingForCallback = true;
     }
+  }
 
-    // Sets the alarm to go off in a certain number of milliseconds. If the alarm is already set,
-    // it's overwritten and only the new alarm setting is used
-    public void setAlarm(long millisecondsInFuture) {
-        long currentTime = SystemClock.uptimeMillis();
-        mAlarmPending = true;
-        long oldTriggerTime = mAlarmTriggerTime;
-        mAlarmTriggerTime = currentTime + millisecondsInFuture;
+  public void cancelAlarm() {
+    mAlarmPending = false;
+  }
 
-        // If the previous alarm was set for a longer duration, cancel it.
-        if (mWaitingForCallback && oldTriggerTime > mAlarmTriggerTime) {
-            mHandler.removeCallbacks(this);
-            mWaitingForCallback = false;
-        }
-        if (!mWaitingForCallback) {
-            mHandler.postDelayed(this, mAlarmTriggerTime - currentTime);
-            mWaitingForCallback = true;
-        }
-    }
-
-    public void cancelAlarm() {
+  // this is called when our timer runs out
+  public void run() {
+    mWaitingForCallback = false;
+    if (mAlarmPending) {
+      long currentTime = SystemClock.uptimeMillis();
+      if (mAlarmTriggerTime > currentTime) {
+        // We still need to wait some time to trigger spring loaded mode--
+        // post a new callback
+        mHandler.postDelayed(this, Math.max(0, mAlarmTriggerTime - currentTime));
+        mWaitingForCallback = true;
+      } else {
         mAlarmPending = false;
-    }
-
-    // this is called when our timer runs out
-    public void run() {
-        mWaitingForCallback = false;
-        if (mAlarmPending) {
-            long currentTime = SystemClock.uptimeMillis();
-            if (mAlarmTriggerTime > currentTime) {
-                // We still need to wait some time to trigger spring loaded mode--
-                // post a new callback
-                mHandler.postDelayed(this, Math.max(0, mAlarmTriggerTime - currentTime));
-                mWaitingForCallback = true;
-            } else {
-                mAlarmPending = false;
-                if (mAlarmListener != null) {
-                    mAlarmListener.onAlarm(this);
-                }
-            }
+        if (mAlarmListener != null) {
+          mAlarmListener.onAlarm(this);
         }
+      }
     }
+  }
 
-    public boolean alarmPending() {
-        return mAlarmPending;
-    }
+  public boolean alarmPending() {
+    return mAlarmPending;
+  }
 }

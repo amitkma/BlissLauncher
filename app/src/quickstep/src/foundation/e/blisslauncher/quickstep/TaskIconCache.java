@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Amit Kumar.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep;
 
 import static foundation.e.blisslauncher.uioverrides.RecentsUiFactory.GO_LOW_RAM_RECENTS_ENABLED;
@@ -36,118 +37,120 @@ import foundation.e.blisslauncher.core.utils.Preconditions;
 import java.util.function.Consumer;
 
 /**
- * Manages the caching of task icons and related data.
- * TODO: This class should later be merged into IconCache.
+ * Manages the caching of task icons and related data. TODO: This class should later be merged into
+ * IconCache.
  */
 public class TaskIconCache {
 
-    private final Handler mBackgroundHandler;
-    private final MainThreadExecutor mMainThreadExecutor;
-    private final AccessibilityManager mAccessibilityManager;
+  private final Handler mBackgroundHandler;
+  private final MainThreadExecutor mMainThreadExecutor;
+  private final AccessibilityManager mAccessibilityManager;
 
-    private final NormalizedIconLoader mIconLoader;
+  private final NormalizedIconLoader mIconLoader;
 
-    private final TaskKeyLruCache<Drawable> mIconCache;
-    private final TaskKeyLruCache<String> mContentDescriptionCache;
-    private final LruCache<ComponentName, ActivityInfo> mActivityInfoCache;
+  private final TaskKeyLruCache<Drawable> mIconCache;
+  private final TaskKeyLruCache<String> mContentDescriptionCache;
+  private final LruCache<ComponentName, ActivityInfo> mActivityInfoCache;
 
-    private TaskKeyLruCache.EvictionCallback mClearActivityInfoOnEviction =
-            new TaskKeyLruCache.EvictionCallback() {
+  private TaskKeyLruCache.EvictionCallback mClearActivityInfoOnEviction =
+      new TaskKeyLruCache.EvictionCallback() {
         @Override
         public void onEntryEvicted(Task.TaskKey key) {
-            if (key != null) {
-                mActivityInfoCache.remove(key.getComponent());
-            }
+          if (key != null) {
+            mActivityInfoCache.remove(key.getComponent());
+          }
         }
-    };
+      };
 
-    public TaskIconCache(Context context, Looper backgroundLooper) {
-        mBackgroundHandler = new Handler(backgroundLooper);
-        mMainThreadExecutor = new MainThreadExecutor();
-        mAccessibilityManager = context.getSystemService(AccessibilityManager.class);
+  public TaskIconCache(Context context, Looper backgroundLooper) {
+    mBackgroundHandler = new Handler(backgroundLooper);
+    mMainThreadExecutor = new MainThreadExecutor();
+    mAccessibilityManager = context.getSystemService(AccessibilityManager.class);
 
-        Resources res = context.getResources();
-        int cacheSize = res.getInteger(R.integer.recentsIconCacheSize);
-        mIconCache = new TaskKeyLruCache<>(cacheSize, mClearActivityInfoOnEviction);
-        mContentDescriptionCache = new TaskKeyLruCache<>(cacheSize, mClearActivityInfoOnEviction);
-        mActivityInfoCache = new LruCache<>(cacheSize);
-        mIconLoader = new NormalizedIconLoader(context, mIconCache, mActivityInfoCache,
-                true /* disableColorExtraction */);
+    Resources res = context.getResources();
+    int cacheSize = res.getInteger(R.integer.recentsIconCacheSize);
+    mIconCache = new TaskKeyLruCache<>(cacheSize, mClearActivityInfoOnEviction);
+    mContentDescriptionCache = new TaskKeyLruCache<>(cacheSize, mClearActivityInfoOnEviction);
+    mActivityInfoCache = new LruCache<>(cacheSize);
+    mIconLoader =
+        new NormalizedIconLoader(
+            context, mIconCache, mActivityInfoCache, true /* disableColorExtraction */);
+  }
+
+  /**
+   * Asynchronously fetches the icon and other task data.
+   *
+   * @param task The task to fetch the data for
+   * @param callback The callback to receive the task after its data has been populated.
+   * @return A cancelable handle to the request
+   */
+  public IconLoadRequest updateIconInBackground(Task task, Consumer<Task> callback) {
+    Preconditions.assertUIThread();
+    if (task.icon != null) {
+      // Nothing to load, the icon is already loaded
+      callback.accept(task);
+      return null;
     }
 
-    /**
-     * Asynchronously fetches the icon and other task data.
-     *
-     * @param task The task to fetch the data for
-     * @param callback The callback to receive the task after its data has been populated.
-     * @return A cancelable handle to the request
-     */
-    public IconLoadRequest updateIconInBackground(Task task, Consumer<Task> callback) {
-        Preconditions.assertUIThread();
-        if (task.icon != null) {
-            // Nothing to load, the icon is already loaded
-            callback.accept(task);
-            return null;
-        }
-
-        IconLoadRequest request = new IconLoadRequest(mBackgroundHandler) {
-            @Override
-            public void run() {
-                Drawable icon = mIconLoader.getIcon(task);
-                String contentDescription = loadContentDescriptionInBackground(task);
-                if (isCanceled()) {
-                    // We don't call back to the provided callback in this case
-                    return;
-                }
-                mMainThreadExecutor.execute(() -> {
-                    task.icon = icon;
-                    task.titleDescription = contentDescription;
-                    callback.accept(task);
-                    onEnd();
+    IconLoadRequest request =
+        new IconLoadRequest(mBackgroundHandler) {
+          @Override
+          public void run() {
+            Drawable icon = mIconLoader.getIcon(task);
+            String contentDescription = loadContentDescriptionInBackground(task);
+            if (isCanceled()) {
+              // We don't call back to the provided callback in this case
+              return;
+            }
+            mMainThreadExecutor.execute(
+                () -> {
+                  task.icon = icon;
+                  task.titleDescription = contentDescription;
+                  callback.accept(task);
+                  onEnd();
                 });
-            }
+          }
         };
-        Utilities.postAsyncCallback(mBackgroundHandler, request);
-        return request;
+    Utilities.postAsyncCallback(mBackgroundHandler, request);
+    return request;
+  }
+
+  public void clear() {
+    mIconCache.evictAll();
+    mContentDescriptionCache.evictAll();
+  }
+
+  /** Loads the content description for the given {@param task}. */
+  private String loadContentDescriptionInBackground(Task task) {
+    // Return the cached content description if it exists
+    String label = mContentDescriptionCache.getAndInvalidateIfModified(task.key);
+    if (label != null) {
+      return label;
     }
 
-    public void clear() {
-        mIconCache.evictAll();
-        mContentDescriptionCache.evictAll();
+    // Skip loading content descriptions if accessibility is disabled unless low RAM recents
+    // is enabled.
+    if (!GO_LOW_RAM_RECENTS_ENABLED && !mAccessibilityManager.isEnabled()) {
+      return "";
     }
 
-    /**
-     * Loads the content description for the given {@param task}.
-     */
-    private String loadContentDescriptionInBackground(Task task) {
-        // Return the cached content description if it exists
-        String label = mContentDescriptionCache.getAndInvalidateIfModified(task.key);
-        if (label != null) {
-            return label;
-        }
-
-        // Skip loading content descriptions if accessibility is disabled unless low RAM recents
-        // is enabled.
-        if (!GO_LOW_RAM_RECENTS_ENABLED && !mAccessibilityManager.isEnabled()) {
-            return "";
-        }
-
-        // Skip loading the content description if the activity no longer exists
-        ActivityInfo activityInfo = mIconLoader.getAndUpdateActivityInfo(task.key);
-        if (activityInfo == null) {
-            return "";
-        }
-
-        // Load the label otherwise
-        label = ActivityManagerWrapper.getInstance().getBadgedContentDescription(activityInfo,
-                task.key.userId, task.taskDescription);
-        mContentDescriptionCache.put(task.key, label);
-        return label;
+    // Skip loading the content description if the activity no longer exists
+    ActivityInfo activityInfo = mIconLoader.getAndUpdateActivityInfo(task.key);
+    if (activityInfo == null) {
+      return "";
     }
 
-    public static abstract class IconLoadRequest extends HandlerRunnable {
-        IconLoadRequest(Handler handler) {
-            super(handler, null);
-        }
+    // Load the label otherwise
+    label =
+        ActivityManagerWrapper.getInstance()
+            .getBadgedContentDescription(activityInfo, task.key.userId, task.taskDescription);
+    mContentDescriptionCache.put(task.key, label);
+    return label;
+  }
+
+  public abstract static class IconLoadRequest extends HandlerRunnable {
+    IconLoadRequest(Handler handler) {
+      super(handler, null);
     }
+  }
 }

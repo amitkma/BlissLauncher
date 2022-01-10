@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.uioverrides;
 
 import static foundation.e.blisslauncher.features.test.LauncherState.NORMAL;
@@ -42,162 +43,162 @@ import foundation.e.blisslauncher.uioverrides.touchcontrollers.QuickSwitchTouchC
 import foundation.e.blisslauncher.uioverrides.touchcontrollers.TaskViewTouchController;
 import java.util.ArrayList;
 
-/**
- * Provides recents-related {@link UiFactory} logic and classes.
- */
+/** Provides recents-related {@link UiFactory} logic and classes. */
 public abstract class RecentsUiFactory {
 
-    public static final boolean GO_LOW_RAM_RECENTS_ENABLED = false;
-    private static final UiThreadHelper.AsyncCommand SET_SHELF_HEIGHT_CMD = (visible, height) ->
-            WindowManagerWrapper.getInstance().setShelfHeight(visible != 0, height);
+  public static final boolean GO_LOW_RAM_RECENTS_ENABLED = false;
+  private static final UiThreadHelper.AsyncCommand SET_SHELF_HEIGHT_CMD =
+      (visible, height) -> WindowManagerWrapper.getInstance().setShelfHeight(visible != 0, height);
 
-    public static RotationMode ROTATION_LANDSCAPE = new RotationMode(-90) {
+  public static RotationMode ROTATION_LANDSCAPE =
+      new RotationMode(-90) {
         @Override
         public void mapRect(int left, int top, int right, int bottom, Rect out) {
-            out.left = top;
-            out.top = right;
-            out.right = bottom;
-            out.bottom = left;
+          out.left = top;
+          out.top = right;
+          out.right = bottom;
+          out.bottom = left;
         }
 
         @Override
         public void mapInsets(Context context, Rect insets, Rect out) {
-            // If there is a display cutout, the top insets in portrait would also include the
-            // cutout, which we will get as the left inset in landscape. Using the max of left and
-            // top allows us to cover both cases (with or without cutout).
-            if (SysUINavigationMode.getMode(context) == NO_BUTTON) {
-                out.top = Math.max(insets.top, insets.left);
-                out.bottom = Math.max(insets.right, insets.bottom);
-                out.left = out.right = 0;
-            } else {
-                out.top = Math.max(insets.top, insets.left);
-                out.bottom = insets.right;
-                out.left = insets.bottom;
-                out.right = 0;
-            }
+          // If there is a display cutout, the top insets in portrait would also include the
+          // cutout, which we will get as the left inset in landscape. Using the max of left and
+          // top allows us to cover both cases (with or without cutout).
+          if (SysUINavigationMode.getMode(context) == NO_BUTTON) {
+            out.top = Math.max(insets.top, insets.left);
+            out.bottom = Math.max(insets.right, insets.bottom);
+            out.left = out.right = 0;
+          } else {
+            out.top = Math.max(insets.top, insets.left);
+            out.bottom = insets.right;
+            out.left = insets.bottom;
+            out.right = 0;
+          }
         }
-    };
+      };
 
-    public static RotationMode ROTATION_SEASCAPE = new RotationMode(90) {
+  public static RotationMode ROTATION_SEASCAPE =
+      new RotationMode(90) {
         @Override
         public void mapRect(int left, int top, int right, int bottom, Rect out) {
-            out.left = bottom;
-            out.top = left;
-            out.right = top;
-            out.bottom = right;
+          out.left = bottom;
+          out.top = left;
+          out.right = top;
+          out.bottom = right;
         }
 
         @Override
         public void mapInsets(Context context, Rect insets, Rect out) {
-            if (SysUINavigationMode.getMode(context) == NO_BUTTON) {
-                out.top = Math.max(insets.top, insets.right);
-                out.bottom = Math.max(insets.left, insets.bottom);
-                out.left = out.right = 0;
-            } else {
-                out.top = Math.max(insets.top, insets.right);
-                out.bottom = insets.left;
-                out.right = insets.bottom;
-                out.left = 0;
-            }
+          if (SysUINavigationMode.getMode(context) == NO_BUTTON) {
+            out.top = Math.max(insets.top, insets.right);
+            out.bottom = Math.max(insets.left, insets.bottom);
+            out.left = out.right = 0;
+          } else {
+            out.top = Math.max(insets.top, insets.right);
+            out.bottom = insets.left;
+            out.right = insets.bottom;
+            out.left = 0;
+          }
         }
 
         @Override
         public int toNaturalGravity(int absoluteGravity) {
-            int horizontalGravity = absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK;
-            int verticalGravity = absoluteGravity & Gravity.VERTICAL_GRAVITY_MASK;
+          int horizontalGravity = absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK;
+          int verticalGravity = absoluteGravity & Gravity.VERTICAL_GRAVITY_MASK;
 
-            if (horizontalGravity == Gravity.RIGHT) {
-                horizontalGravity = Gravity.LEFT;
-            } else if (horizontalGravity == Gravity.LEFT) {
-                horizontalGravity = Gravity.RIGHT;
-            }
+          if (horizontalGravity == Gravity.RIGHT) {
+            horizontalGravity = Gravity.LEFT;
+          } else if (horizontalGravity == Gravity.LEFT) {
+            horizontalGravity = Gravity.RIGHT;
+          }
 
-            if (verticalGravity == Gravity.TOP) {
-                verticalGravity = Gravity.BOTTOM;
-            } else if (verticalGravity == Gravity.BOTTOM) {
-                verticalGravity = Gravity.TOP;
-            }
+          if (verticalGravity == Gravity.TOP) {
+            verticalGravity = Gravity.BOTTOM;
+          } else if (verticalGravity == Gravity.BOTTOM) {
+            verticalGravity = Gravity.TOP;
+          }
 
-            return ((absoluteGravity & ~Gravity.HORIZONTAL_GRAVITY_MASK)
-                    & ~Gravity.VERTICAL_GRAVITY_MASK)
-                    | horizontalGravity | verticalGravity;
+          return ((absoluteGravity & ~Gravity.HORIZONTAL_GRAVITY_MASK)
+                  & ~Gravity.VERTICAL_GRAVITY_MASK)
+              | horizontalGravity
+              | verticalGravity;
         }
-    };
+      };
 
-    public static RotationMode getRotationMode(VariantDeviceProfile dp) {
-        return RotationMode.NORMAL;
+  public static RotationMode getRotationMode(VariantDeviceProfile dp) {
+    return RotationMode.NORMAL;
+  }
+
+  public static TouchController[] createTouchControllers(TestActivity launcher) {
+    Mode mode = SysUINavigationMode.getMode(launcher);
+
+    ArrayList<TouchController> list = new ArrayList<>();
+    list.add(launcher.getDragController());
+    if (mode == NO_BUTTON) {
+      list.add(new QuickSwitchTouchController(launcher));
+      list.add(new NavBarToHomeTouchController(launcher));
+      list.add(new FlingAndHoldTouchController(launcher));
+    } else {
+      list.add(
+          new PortraitStatesTouchController(launcher, mode.hasGestures /* allowDragToOverview */));
+      if (mode.hasGestures) {
+        list.add(new QuickSwitchTouchController(launcher));
+      }
     }
 
-    public static TouchController[] createTouchControllers(TestActivity launcher) {
-        Mode mode = SysUINavigationMode.getMode(launcher);
+    list.add(new LauncherTaskViewController(launcher));
+    return list.toArray(new TouchController[list.size()]);
+  }
 
-        ArrayList<TouchController> list = new ArrayList<>();
-        list.add(launcher.getDragController());
-        if (mode == NO_BUTTON) {
-            list.add(new QuickSwitchTouchController(launcher));
-            list.add(new NavBarToHomeTouchController(launcher));
-            list.add(new FlingAndHoldTouchController(launcher));
-        } else {
-                list.add(new PortraitStatesTouchController(launcher,
-                        mode.hasGestures /* allowDragToOverview */));
-                if (mode.hasGestures) {
-                    list.add(new QuickSwitchTouchController(launcher));
-                }
-        }
+  /**
+   * Creates and returns the controller responsible for recents view state transitions.
+   *
+   * @param launcher the launcher activity
+   * @return state handler for recents
+   */
+  public static LauncherStateManager.StateHandler createRecentsViewStateController(
+      TestActivity launcher) {
+    return new RecentsViewStateController(launcher);
+  }
 
-        list.add(new LauncherTaskViewController(launcher));
-        return list.toArray(new TouchController[list.size()]);
+  /** Clears the swipe shared state for the current swipe gesture. */
+  public static void clearSwipeSharedState(boolean finishAnimation) {
+    TouchInteractionService.getSwipeSharedState().clearAllState(finishAnimation);
+  }
+
+  /**
+   * Recents logic that triggers when launcher state changes or launcher activity stops/resumes.
+   *
+   * @param launcher the launcher activity
+   */
+  public static void onLauncherStateOrResumeChanged(TestActivity launcher) {
+    LauncherState state = launcher.getStateManager().getState();
+    VariantDeviceProfile profile = launcher.getDeviceProfile();
+    boolean visible = (state == NORMAL || state == OVERVIEW) && launcher.isUserActive();
+    UiThreadHelper.runAsyncCommand(
+        launcher, SET_SHELF_HEIGHT_CMD, visible ? 1 : 0, profile.getHotseatBarSizePx());
+
+    if (state == NORMAL) {
+      launcher.<RecentsView>getOverviewPanel().setSwipeDownShouldLaunchApp(false);
+    }
+  }
+
+  private static final class LauncherTaskViewController
+      extends TaskViewTouchController<TestActivity> {
+
+    LauncherTaskViewController(TestActivity activity) {
+      super(activity);
     }
 
-    /**
-     * Creates and returns the controller responsible for recents view state transitions.
-     *
-     * @param launcher the launcher activity
-     * @return state handler for recents
-     */
-    public static LauncherStateManager.StateHandler createRecentsViewStateController(TestActivity launcher) {
-        return new RecentsViewStateController(launcher);
+    @Override
+    protected boolean isRecentsInteractive() {
+      return mActivity.isInState(OVERVIEW);
     }
 
-    /**
-     * Clears the swipe shared state for the current swipe gesture.
-     */
-    public static void clearSwipeSharedState(boolean finishAnimation) {
-        TouchInteractionService.getSwipeSharedState().clearAllState(finishAnimation);
+    @Override
+    protected void onUserControlledAnimationCreated(AnimatorPlaybackController animController) {
+      mActivity.getStateManager().setCurrentUserControlledAnimation(animController);
     }
-
-    /**
-     * Recents logic that triggers when launcher state changes or launcher activity stops/resumes.
-     *
-     * @param launcher the launcher activity
-     */
-    public static void onLauncherStateOrResumeChanged(TestActivity launcher) {
-        LauncherState state = launcher.getStateManager().getState();
-        VariantDeviceProfile profile = launcher.getDeviceProfile();
-        boolean visible = (state == NORMAL || state == OVERVIEW) && launcher.isUserActive();
-        UiThreadHelper.runAsyncCommand(launcher, SET_SHELF_HEIGHT_CMD,
-                visible ? 1 : 0, profile.getHotseatBarSizePx());
-
-        if (state == NORMAL) {
-            launcher.<RecentsView>getOverviewPanel().setSwipeDownShouldLaunchApp(false);
-        }
-    }
-
-    private static final class LauncherTaskViewController extends
-        TaskViewTouchController<TestActivity> {
-
-        LauncherTaskViewController(TestActivity activity) {
-            super(activity);
-        }
-
-        @Override
-        protected boolean isRecentsInteractive() {
-            return mActivity.isInState(OVERVIEW);
-        }
-
-        @Override
-        protected void onUserControlledAnimationCreated(AnimatorPlaybackController animController) {
-            mActivity.getStateManager().setCurrentUserControlledAnimation(animController);
-        }
-    }
+  }
 }

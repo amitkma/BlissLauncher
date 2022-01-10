@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (c) 2017 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,78 +23,75 @@ import android.provider.Settings;
 
 public interface SettingsObserver {
 
-    /**
-     * Registers the content observer to call {@link #onSettingChanged(boolean)} when any of the
-     * passed settings change. The value passed to onSettingChanged() is based on the key setting.
-     */
-    void register(String keySetting, String ... dependentSettings);
-    void unregister();
-    void onSettingChanged(boolean keySettingEnabled);
+  /**
+   * Registers the content observer to call {@link #onSettingChanged(boolean)} when any of the
+   * passed settings change. The value passed to onSettingChanged() is based on the key setting.
+   */
+  void register(String keySetting, String... dependentSettings);
 
+  void unregister();
 
-    abstract class Secure extends ContentObserver implements SettingsObserver {
-        private ContentResolver mResolver;
-        private String mKeySetting;
+  void onSettingChanged(boolean keySettingEnabled);
 
-        public Secure(ContentResolver resolver) {
-            super(new Handler());
-            mResolver = resolver;
-        }
+  abstract class Secure extends ContentObserver implements SettingsObserver {
+    private ContentResolver mResolver;
+    private String mKeySetting;
 
-        @Override
-        public void register(String keySetting, String ... dependentSettings) {
-            mKeySetting = keySetting;
-            mResolver.registerContentObserver(
-                    Settings.Secure.getUriFor(mKeySetting), false, this);
-            for (String setting : dependentSettings) {
-                mResolver.registerContentObserver(
-                        Settings.Secure.getUriFor(setting), false, this);
-            }
-            onChange(true);
-        }
-
-        @Override
-        public void unregister() {
-            mResolver.unregisterContentObserver(this);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            super.onChange(selfChange);
-            onSettingChanged(Settings.Secure.getInt(mResolver, mKeySetting, 1) == 1);
-        }
+    public Secure(ContentResolver resolver) {
+      super(new Handler());
+      mResolver = resolver;
     }
 
-    abstract class System extends ContentObserver implements SettingsObserver {
-        private ContentResolver mResolver;
-        private String mKeySetting;
-
-        public System(ContentResolver resolver) {
-            super(new Handler());
-            mResolver = resolver;
-        }
-
-        @Override
-        public void register(String keySetting, String ... dependentSettings) {
-            mKeySetting = keySetting;
-            mResolver.registerContentObserver(
-                    Settings.System.getUriFor(mKeySetting), false, this);
-            for (String setting : dependentSettings) {
-                mResolver.registerContentObserver(
-                        Settings.System.getUriFor(setting), false, this);
-            }
-            onChange(true);
-        }
-
-        @Override
-        public void unregister() {
-            mResolver.unregisterContentObserver(this);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            super.onChange(selfChange);
-            onSettingChanged(Settings.System.getInt(mResolver, mKeySetting, 1) == 1);
-        }
+    @Override
+    public void register(String keySetting, String... dependentSettings) {
+      mKeySetting = keySetting;
+      mResolver.registerContentObserver(Settings.Secure.getUriFor(mKeySetting), false, this);
+      for (String setting : dependentSettings) {
+        mResolver.registerContentObserver(Settings.Secure.getUriFor(setting), false, this);
+      }
+      onChange(true);
     }
+
+    @Override
+    public void unregister() {
+      mResolver.unregisterContentObserver(this);
+    }
+
+    @Override
+    public void onChange(boolean selfChange) {
+      super.onChange(selfChange);
+      onSettingChanged(Settings.Secure.getInt(mResolver, mKeySetting, 1) == 1);
+    }
+  }
+
+  abstract class System extends ContentObserver implements SettingsObserver {
+    private ContentResolver mResolver;
+    private String mKeySetting;
+
+    public System(ContentResolver resolver) {
+      super(new Handler());
+      mResolver = resolver;
+    }
+
+    @Override
+    public void register(String keySetting, String... dependentSettings) {
+      mKeySetting = keySetting;
+      mResolver.registerContentObserver(Settings.System.getUriFor(mKeySetting), false, this);
+      for (String setting : dependentSettings) {
+        mResolver.registerContentObserver(Settings.System.getUriFor(setting), false, this);
+      }
+      onChange(true);
+    }
+
+    @Override
+    public void unregister() {
+      mResolver.unregisterContentObserver(this);
+    }
+
+    @Override
+    public void onChange(boolean selfChange) {
+      super.onChange(selfChange);
+      onSettingChanged(Settings.System.getInt(mResolver, mKeySetting, 1) == 1);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Amit Kumar.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.uioverrides;
 
 import static android.app.WallpaperManager.FLAG_SYSTEM;
@@ -32,89 +33,89 @@ import java.util.ArrayList;
 @TargetApi(Build.VERSION_CODES.P)
 public class WallpaperColorInfo implements OnColorsChangedListener {
 
-    private static final int MAIN_COLOR_LIGHT = 0xffdadce0;
-    private static final int MAIN_COLOR_DARK = 0xff202124;
-    private static final int MAIN_COLOR_REGULAR = 0xff000000;
+  private static final int MAIN_COLOR_LIGHT = 0xffdadce0;
+  private static final int MAIN_COLOR_DARK = 0xff202124;
+  private static final int MAIN_COLOR_REGULAR = 0xff000000;
 
-    private static final Object sInstanceLock = new Object();
-    private static WallpaperColorInfo sInstance;
+  private static final Object sInstanceLock = new Object();
+  private static WallpaperColorInfo sInstance;
 
-    public static WallpaperColorInfo getInstance(Context context) {
-        synchronized (sInstanceLock) {
-            if (sInstance == null) {
-                sInstance = new WallpaperColorInfo(context.getApplicationContext());
-            }
-            return sInstance;
-        }
+  public static WallpaperColorInfo getInstance(Context context) {
+    synchronized (sInstanceLock) {
+      if (sInstance == null) {
+        sInstance = new WallpaperColorInfo(context.getApplicationContext());
+      }
+      return sInstance;
     }
+  }
 
-    private final ArrayList<OnChangeListener> mListeners = new ArrayList<>();
-    private final WallpaperManager mWallpaperManager;
-    private final TonalCompat mTonalCompat;
+  private final ArrayList<OnChangeListener> mListeners = new ArrayList<>();
+  private final WallpaperManager mWallpaperManager;
+  private final TonalCompat mTonalCompat;
 
-    private ExtractionInfo mExtractionInfo;
+  private ExtractionInfo mExtractionInfo;
 
-    private OnChangeListener[] mTempListeners = new OnChangeListener[0];
+  private OnChangeListener[] mTempListeners = new OnChangeListener[0];
 
-    private WallpaperColorInfo(Context context) {
-        mWallpaperManager = context.getSystemService(WallpaperManager.class);
-        mTonalCompat = new TonalCompat(context);
+  private WallpaperColorInfo(Context context) {
+    mWallpaperManager = context.getSystemService(WallpaperManager.class);
+    mTonalCompat = new TonalCompat(context);
 
-        mWallpaperManager.addOnColorsChangedListener(this, new Handler(Looper.getMainLooper()));
-        update(mWallpaperManager.getWallpaperColors(FLAG_SYSTEM));
+    mWallpaperManager.addOnColorsChangedListener(this, new Handler(Looper.getMainLooper()));
+    update(mWallpaperManager.getWallpaperColors(FLAG_SYSTEM));
+  }
+
+  public int getMainColor() {
+    return mExtractionInfo.mainColor;
+  }
+
+  public int getSecondaryColor() {
+    return mExtractionInfo.secondaryColor;
+  }
+
+  public boolean isDark() {
+    return mExtractionInfo.supportsDarkTheme;
+  }
+
+  public boolean supportsDarkText() {
+    return mExtractionInfo.supportsDarkText;
+  }
+
+  public boolean isMainColorDark() {
+    return mExtractionInfo.mainColor == MAIN_COLOR_DARK;
+  }
+
+  @Override
+  public void onColorsChanged(WallpaperColors colors, int which) {
+    if ((which & FLAG_SYSTEM) != 0) {
+      update(colors);
+      notifyChange();
     }
+  }
 
-    public int getMainColor() {
-        return mExtractionInfo.mainColor;
-    }
+  private void update(WallpaperColors wallpaperColors) {
+    mExtractionInfo = mTonalCompat.extractDarkColors(wallpaperColors);
+  }
 
-    public int getSecondaryColor() {
-        return mExtractionInfo.secondaryColor;
-    }
+  public void addOnChangeListener(OnChangeListener listener) {
+    mListeners.add(listener);
+  }
 
-    public boolean isDark() {
-        return mExtractionInfo.supportsDarkTheme;
-    }
+  public void removeOnChangeListener(OnChangeListener listener) {
+    mListeners.remove(listener);
+  }
 
-    public boolean supportsDarkText() {
-        return mExtractionInfo.supportsDarkText;
+  private void notifyChange() {
+    // Create a new array to avoid concurrent modification when the activity destroys itself.
+    mTempListeners = mListeners.toArray(mTempListeners);
+    for (OnChangeListener listener : mTempListeners) {
+      if (listener != null) {
+        listener.onExtractedColorsChanged(this);
+      }
     }
+  }
 
-    public boolean isMainColorDark() {
-        return mExtractionInfo.mainColor == MAIN_COLOR_DARK;
-    }
-
-    @Override
-    public void onColorsChanged(WallpaperColors colors, int which) {
-        if ((which & FLAG_SYSTEM) != 0) {
-            update(colors);
-            notifyChange();
-        }
-    }
-
-    private void update(WallpaperColors wallpaperColors) {
-        mExtractionInfo = mTonalCompat.extractDarkColors(wallpaperColors);
-    }
-
-    public void addOnChangeListener(OnChangeListener listener) {
-        mListeners.add(listener);
-    }
-
-    public void removeOnChangeListener(OnChangeListener listener) {
-        mListeners.remove(listener);
-    }
-
-    private void notifyChange() {
-        // Create a new array to avoid concurrent modification when the activity destroys itself.
-        mTempListeners = mListeners.toArray(mTempListeners);
-        for (OnChangeListener listener : mTempListeners) {
-            if (listener != null) {
-                listener.onExtractedColorsChanged(this);
-            }
-        }
-    }
-
-    public interface OnChangeListener {
-        void onExtractedColorsChanged(WallpaperColorInfo wallpaperColorInfo);
-    }
+  public interface OnChangeListener {
+    void onExtractedColorsChanged(WallpaperColorInfo wallpaperColorInfo);
+  }
 }

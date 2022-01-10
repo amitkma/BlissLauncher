@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.util;
 
 import static foundation.e.blisslauncher.quickstep.SysUINavigationMode.Mode.NO_BUTTON;
@@ -25,30 +26,29 @@ import android.view.WindowManager;
 import foundation.e.blisslauncher.features.test.graphics.RotationMode;
 import foundation.e.blisslauncher.quickstep.SysUINavigationMode;
 
-/**
- * Utility class to check nav bar position
- */
+/** Utility class to check nav bar position */
 public class NavBarPosition {
 
-    private final SysUINavigationMode.Mode mMode;
-    private final int mDisplayRotation;
+  private final SysUINavigationMode.Mode mMode;
+  private final int mDisplayRotation;
 
-    public NavBarPosition(Context context) {
-        mMode = SysUINavigationMode.getMode(context);
-        mDisplayRotation = context.getSystemService(WindowManager.class)
-                .getDefaultDisplay().getRotation();
-    }
+  public NavBarPosition(Context context) {
+    mMode = SysUINavigationMode.getMode(context);
+    mDisplayRotation =
+        context.getSystemService(WindowManager.class).getDefaultDisplay().getRotation();
+  }
 
-    public boolean isRightEdge() {
-        return mMode != NO_BUTTON && mDisplayRotation == Surface.ROTATION_90;
-    }
+  public boolean isRightEdge() {
+    return mMode != NO_BUTTON && mDisplayRotation == Surface.ROTATION_90;
+  }
 
-    public boolean isLeftEdge() {
-        return mMode != NO_BUTTON && mDisplayRotation == Surface.ROTATION_270;
-    }
+  public boolean isLeftEdge() {
+    return mMode != NO_BUTTON && mDisplayRotation == Surface.ROTATION_270;
+  }
 
-    public RotationMode getRotationMode() {
-        return isLeftEdge() ? ROTATION_SEASCAPE
-                : (isRightEdge() ? ROTATION_LANDSCAPE : RotationMode.NORMAL);
-    }
+  public RotationMode getRotationMode() {
+    return isLeftEdge()
+        ? ROTATION_SEASCAPE
+        : (isRightEdge() ? ROTATION_LANDSCAPE : RotationMode.NORMAL);
+  }
 }

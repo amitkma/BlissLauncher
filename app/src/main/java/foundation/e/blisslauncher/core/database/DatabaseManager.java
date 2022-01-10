@@ -1,5 +1,20 @@
-package foundation.e.blisslauncher.core.database;
+/*
+ * Copyright (c) 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package foundation.e.blisslauncher.core.database;
 
 import android.content.Context;
 import android.widget.GridLayout;
@@ -9,134 +24,137 @@ import foundation.e.blisslauncher.core.database.model.LauncherItem;
 import foundation.e.blisslauncher.core.database.model.WidgetItem;
 import foundation.e.blisslauncher.core.executors.AppExecutors;
 import foundation.e.blisslauncher.core.utils.Constants;
-import foundation.e.blisslauncher.features.test.CellLayout;
-import foundation.e.blisslauncher.features.test.IconTextView;
 import io.reactivex.Single;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
 
-    private AppExecutors mAppExecutors;
+  private AppExecutors mAppExecutors;
 
-    private static final String TAG = "DatabaseManager";
+  private static final String TAG = "DatabaseManager";
 
-    private static volatile DatabaseManager INSTANCE;
-    private Context mContext;
+  private static volatile DatabaseManager INSTANCE;
+  private Context mContext;
 
-    private DatabaseManager(Context context) {
-        this.mContext = context;
-        mAppExecutors = AppExecutors.getInstance();
-    }
+  private DatabaseManager(Context context) {
+    this.mContext = context;
+    mAppExecutors = AppExecutors.getInstance();
+  }
 
-    public static DatabaseManager getManager(Context context) {
+  public static DatabaseManager getManager(Context context) {
+    if (INSTANCE == null) {
+      synchronized (DatabaseManager.class) {
         if (INSTANCE == null) {
-            synchronized (DatabaseManager.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new DatabaseManager(context);
-                }
-            }
+          INSTANCE = new DatabaseManager(context);
         }
-        return INSTANCE;
+      }
     }
+    return INSTANCE;
+  }
 
-    public void removeLauncherItem(String itemId) {
-        mAppExecutors.diskIO().execute(
-                () -> LauncherDB.getDatabase(mContext).launcherDao().delete(itemId));
-    }
+  public void removeLauncherItem(String itemId) {
+    mAppExecutors
+        .diskIO()
+        .execute(() -> LauncherDB.getDatabase(mContext).launcherDao().delete(itemId));
+  }
 
-    public void saveLayouts(List<GridLayout> pages, GridLayout dock) {
-        List<GridLayout> tempPages = pages;
-        GridLayout tempDock = dock;
-    }
+  public void saveLayouts(List<GridLayout> pages, GridLayout dock) {
+    List<GridLayout> tempPages = pages;
+    GridLayout tempDock = dock;
+  }
 
-    public void saveItems(final List<LauncherItem> items) {
-        mAppExecutors.diskIO().execute(() -> LauncherDB.getDatabase(mContext).launcherDao().insertAll(items));
-    }
+  public void saveItems(final List<LauncherItem> items) {
+    mAppExecutors
+        .diskIO()
+        .execute(() -> LauncherDB.getDatabase(mContext).launcherDao().insertAll(items));
+  }
 
-    private void saveLauncherItems(final List<GridLayout> pages, final GridLayout dock) {
-        List<LauncherItem> items = new ArrayList<>();
-        for (int i = 0; i < dock.getChildCount(); i++) {
-            LauncherItem launcherItem = ((BlissFrameLayout) dock.getChildAt(i)).getLauncherItem();
-            if (launcherItem.itemType == Constants.ITEM_TYPE_FOLDER) {
-                FolderItem folderItem = (FolderItem) launcherItem;
-                folderItem.screenId = -1;
-                folderItem.cell = i;
-                folderItem.container = Constants.CONTAINER_HOTSEAT;
-                items.add(launcherItem);
+  private void saveLauncherItems(final List<GridLayout> pages, final GridLayout dock) {
+    List<LauncherItem> items = new ArrayList<>();
+    for (int i = 0; i < dock.getChildCount(); i++) {
+      LauncherItem launcherItem = ((BlissFrameLayout) dock.getChildAt(i)).getLauncherItem();
+      if (launcherItem.itemType == Constants.ITEM_TYPE_FOLDER) {
+        FolderItem folderItem = (FolderItem) launcherItem;
+        folderItem.screenId = -1;
+        folderItem.cell = i;
+        folderItem.container = Constants.CONTAINER_HOTSEAT;
+        items.add(launcherItem);
 
-                for (int j = 0; j < folderItem.items.size(); j++) {
-                    LauncherItem item = folderItem.items.get(j);
-                    item.screenId = -1;
-                    item.container = Long.parseLong(folderItem.id);
-                    item.cell = j;
-                    items.add(item);
-                }
-            } else {
-                launcherItem.screenId = -1;
-                launcherItem.container = Constants.CONTAINER_HOTSEAT;
-                launcherItem.cell = i;
-                items.add(launcherItem);
-            }
+        for (int j = 0; j < folderItem.items.size(); j++) {
+          LauncherItem item = folderItem.items.get(j);
+          item.screenId = -1;
+          item.container = Long.parseLong(folderItem.id);
+          item.cell = j;
+          items.add(item);
         }
+      } else {
+        launcherItem.screenId = -1;
+        launcherItem.container = Constants.CONTAINER_HOTSEAT;
+        launcherItem.cell = i;
+        items.add(launcherItem);
+      }
+    }
 
-        for (int i = 0; i < pages.size(); i++) {
-            GridLayout gridLayout = pages.get(i);
-            for (int j = 0; j < gridLayout.getChildCount(); j++) {
-                LauncherItem launcherItem = ((BlissFrameLayout) gridLayout.getChildAt(
-                        j)).getLauncherItem();
-                if (launcherItem.itemType == Constants.ITEM_TYPE_FOLDER) {
-                    FolderItem folderItem = (FolderItem) launcherItem;
-                    folderItem.screenId = i;
-                    folderItem.cell = j;
-                    folderItem.container = Constants.CONTAINER_DESKTOP;
-                    items.add(folderItem);
-                    for (int k = 0; k < folderItem.items.size(); k++) {
-                        LauncherItem item = folderItem.items.get(k);
-                        item.screenId = -1;
-                        item.container = Long.parseLong(folderItem.id);
-                        item.cell = k;
-                        items.add(item);
-                    }
-                } else {
-                    launcherItem.screenId = i;
-                    launcherItem.container = Constants.CONTAINER_DESKTOP;
-                    launcherItem.cell = j;
-                    items.add(launcherItem);
-                }
-            }
+    for (int i = 0; i < pages.size(); i++) {
+      GridLayout gridLayout = pages.get(i);
+      for (int j = 0; j < gridLayout.getChildCount(); j++) {
+        LauncherItem launcherItem = ((BlissFrameLayout) gridLayout.getChildAt(j)).getLauncherItem();
+        if (launcherItem.itemType == Constants.ITEM_TYPE_FOLDER) {
+          FolderItem folderItem = (FolderItem) launcherItem;
+          folderItem.screenId = i;
+          folderItem.cell = j;
+          folderItem.container = Constants.CONTAINER_DESKTOP;
+          items.add(folderItem);
+          for (int k = 0; k < folderItem.items.size(); k++) {
+            LauncherItem item = folderItem.items.get(k);
+            item.screenId = -1;
+            item.container = Long.parseLong(folderItem.id);
+            item.cell = k;
+            items.add(item);
+          }
+        } else {
+          launcherItem.screenId = i;
+          launcherItem.container = Constants.CONTAINER_DESKTOP;
+          launcherItem.cell = j;
+          items.add(launcherItem);
         }
-        LauncherDB.getDatabase(mContext).launcherDao().insertAll(items);
+      }
     }
+    LauncherDB.getDatabase(mContext).launcherDao().insertAll(items);
+  }
 
-    public void removeShortcut(String name) {
-        mAppExecutors.diskIO().execute(
-                () -> LauncherDB.getDatabase(mContext).launcherDao().deleteShortcut(name));
-    }
+  public void removeShortcut(String name) {
+    mAppExecutors
+        .diskIO()
+        .execute(() -> LauncherDB.getDatabase(mContext).launcherDao().deleteShortcut(name));
+  }
 
-    // Already invoked in a disk io thread, so no need to execute in separate thread here.
-    public void migrateComponent(String old_component_name, String new_component_name) {
-        LauncherDB.getDatabase(mContext).launcherDao().delete(new_component_name);
-        LauncherDB.getDatabase(mContext).launcherDao().updateComponent(old_component_name,
-                new_component_name);
-    }
+  // Already invoked in a disk io thread, so no need to execute in separate thread here.
+  public void migrateComponent(String old_component_name, String new_component_name) {
+    LauncherDB.getDatabase(mContext).launcherDao().delete(new_component_name);
+    LauncherDB.getDatabase(mContext)
+        .launcherDao()
+        .updateComponent(old_component_name, new_component_name);
+  }
 
-    public Single<Integer> getHeightOfWidget(int id) {
-        return Single.defer(() -> Single.just(LauncherDB.getDatabase(mContext).widgetDao().getHeight(id)));
-    }
+  public Single<Integer> getHeightOfWidget(int id) {
+    return Single.defer(
+        () -> Single.just(LauncherDB.getDatabase(mContext).widgetDao().getHeight(id)));
+  }
 
-    public void saveWidget(int id, int height) {
-        WidgetItem widgetItem = new WidgetItem(id, height);
-        mAppExecutors.diskIO().execute(
-                () -> LauncherDB.getDatabase(mContext).widgetDao().insert(widgetItem));
-    }
+  public void saveWidget(int id, int height) {
+    WidgetItem widgetItem = new WidgetItem(id, height);
+    mAppExecutors
+        .diskIO()
+        .execute(() -> LauncherDB.getDatabase(mContext).widgetDao().insert(widgetItem));
+  }
 
-    public void removeWidget(int id) {
-        mAppExecutors.diskIO().execute(() -> LauncherDB.getDatabase(mContext).widgetDao().delete(id));
-    }
+  public void removeWidget(int id) {
+    mAppExecutors.diskIO().execute(() -> LauncherDB.getDatabase(mContext).widgetDao().delete(id));
+  }
 
-    public void removeItem(String id) {
-        mAppExecutors.diskIO().execute(
-            () -> LauncherDB.getDatabase(mContext).launcherDao().delete(id));
-    }
+  public void removeItem(String id) {
+    mAppExecutors.diskIO().execute(() -> LauncherDB.getDatabase(mContext).launcherDao().delete(id));
+  }
 }

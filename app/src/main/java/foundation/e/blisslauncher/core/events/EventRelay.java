@@ -1,69 +1,84 @@
-package foundation.e.blisslauncher.core.events;
+/*
+ * Copyright (c) 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package foundation.e.blisslauncher.core.events;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class EventRelay {
 
-    private static volatile EventRelay sInstance;
+  private static volatile EventRelay sInstance;
 
-    // Queue to store actions if no observer is currently subscribed to listen for events.
-    private Queue<Event> events;
-    private EventsObserver<Event> observer;
+  // Queue to store actions if no observer is currently subscribed to listen for events.
+  private Queue<Event> events;
+  private EventsObserver<Event> observer;
 
-    private EventRelay() {
-        events = new ConcurrentLinkedQueue<>();
-    }
+  private EventRelay() {
+    events = new ConcurrentLinkedQueue<>();
+  }
 
-    public static EventRelay getInstance() {
+  public static EventRelay getInstance() {
+    if (sInstance == null) {
+      synchronized (EventRelay.class) {
         if (sInstance == null) {
-            synchronized (EventRelay.class) {
-                if (sInstance == null) {
-                    sInstance = new EventRelay();
-                }
-            }
+          sInstance = new EventRelay();
         }
-        return sInstance;
+      }
+    }
+    return sInstance;
+  }
+
+  public void push(Event event) {
+    if (observer != null) {
+      observer.accept(event);
+      if (!(event instanceof TimeChangedEvent)) {
+        observer.complete();
+      }
+    } else {
+      this.events.offer(event);
+    }
+  }
+
+  public void subscribe(EventsObserver<Event> observer) {
+    this.observer = observer;
+    Event event = events.poll();
+    boolean shouldInvokeComplete = (event != null);
+
+    // Pass all the events to the observer
+    while (event != null) {
+      this.observer.accept(event);
+      event = events.poll();
     }
 
-    public void push(Event event) {
-        if (observer != null) {
-            observer.accept(event);
-            if (!(event instanceof TimeChangedEvent)) {
-                observer.complete();
-            }
-        } else {
-            this.events.offer(event);
-        }
+    if (shouldInvokeComplete) this.observer.complete();
+  }
+
+  public void unsubscribe() {
+    if (this.observer != null) {
+      observer.clear();
+      observer = null;
     }
+  }
 
-    public void subscribe(EventsObserver<Event> observer) {
-        this.observer = observer;
-        Event event = events.poll();
-        boolean shouldInvokeComplete = (event != null);
+  public interface EventsObserver<T> {
+    void accept(T event);
 
-        // Pass all the events to the observer
-        while (event != null) {
-            this.observer.accept(event);
-            event = events.poll();
-        }
+    void complete();
 
-        if (shouldInvokeComplete) this.observer.complete();
-    }
-
-    public void unsubscribe() {
-        if (this.observer != null) {
-            observer.clear();
-            observer = null;
-        }
-    }
-
-    public interface EventsObserver<T> {
-        void accept(T event);
-
-        void complete();
-
-        void clear();
-    }
+    void clear();
+  }
 }

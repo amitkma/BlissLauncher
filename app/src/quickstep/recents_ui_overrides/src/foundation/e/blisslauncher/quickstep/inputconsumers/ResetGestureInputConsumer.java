@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.inputconsumers;
 
 import android.view.MotionEvent;
-
 import foundation.e.blisslauncher.quickstep.SwipeSharedState;
 
-/**
- * A NO_OP input consumer which also resets any pending gesture
- */
+/** A NO_OP input consumer which also resets any pending gesture */
 public class ResetGestureInputConsumer implements InputConsumer {
 
-    private final SwipeSharedState mSwipeSharedState;
+  private final SwipeSharedState mSwipeSharedState;
 
-    public ResetGestureInputConsumer(SwipeSharedState swipeSharedState) {
-        mSwipeSharedState = swipeSharedState;
-    }
+  public ResetGestureInputConsumer(SwipeSharedState swipeSharedState) {
+    mSwipeSharedState = swipeSharedState;
+  }
 
-    @Override
-    public int getType() {
-        return TYPE_RESET_GESTURE;
-    }
+  @Override
+  public int getType() {
+    return TYPE_RESET_GESTURE;
+  }
 
-    @Override
-    public void onMotionEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN
-                && mSwipeSharedState.getActiveListener() != null) {
-            mSwipeSharedState.clearAllState(false /* finishAnimation */);
-        }
+  @Override
+  public void onMotionEvent(MotionEvent ev) {
+    if (ev.getAction() == MotionEvent.ACTION_DOWN
+        && mSwipeSharedState.getActiveListener() != null) {
+      mSwipeSharedState.clearAllState(false /* finishAnimation */);
     }
+  }
 }

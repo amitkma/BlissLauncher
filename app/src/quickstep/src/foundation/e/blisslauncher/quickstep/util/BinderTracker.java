@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,46 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.util;
 
-
-
-/**
- * Utility class to test and check binder calls during development.
- */
+/** Utility class to test and check binder calls during development. */
 public class BinderTracker {
 
-    /*private static final String TAG = "BinderTracker";
-    private static final boolean IS_DOGFOOD_BUILD = true;
+  /*private static final String TAG = "BinderTracker";
+  private static final boolean IS_DOGFOOD_BUILD = true;
 
-    public static void start() {
-        if (IS_DOGFOOD_BUILD) {
-            Log.wtf(TAG, "Accessing tracker in released code.", new Exception());
-            return;
-        }
+  public static void start() {
+      if (IS_DOGFOOD_BUILD) {
+          Log.wtf(TAG, "Accessing tracker in released code.", new Exception());
+          return;
+      }
 
-        Binder.setProxyTransactListener(new Tracker());
-    }
+      Binder.setProxyTransactListener(new Tracker());
+  }
 
-    public static void stop() {
-        if (IS_DOGFOOD_BUILD) {
-            Log.wtf(TAG, "Accessing tracker in released code.", new Exception());
-            return;
-        }
-        Binder.setProxyTransactListener(null);
-    }
+  public static void stop() {
+      if (IS_DOGFOOD_BUILD) {
+          Log.wtf(TAG, "Accessing tracker in released code.", new Exception());
+          return;
+      }
+      Binder.setProxyTransactListener(null);
+  }
 
-    private static class Tracker implements Binder.ProxyTransactListener {
+  private static class Tracker implements Binder.ProxyTransactListener {
 
-        @Override
-        public Object onTransactStarted(IBinder iBinder, int code) {
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                Log.e(TAG, "Binder call on ui thread", new Exception());
-            }
-            return null;
-        }
+      @Override
+      public Object onTransactStarted(IBinder iBinder, int code) {
+          if (Looper.myLooper() == Looper.getMainLooper()) {
+              Log.e(TAG, "Binder call on ui thread", new Exception());
+          }
+          return null;
+      }
 
-        @Override
-        public void onTransactEnded(Object session) { }
-    }*/
+      @Override
+      public void onTransactEnded(Object session) { }
+  }*/
 }

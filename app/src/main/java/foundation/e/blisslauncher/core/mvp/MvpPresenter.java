@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Amit Kumar.
+ * Copyright (c) 2022 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,49 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.core.mvp;
 
-public class MvpPresenter<V extends MvpContract.View> implements MvpContract.Presenter<V>{
+public class MvpPresenter<V extends MvpContract.View> implements MvpContract.Presenter<V> {
 
-    private V mView;
-    private boolean isPaused;
+  private V mView;
+  private boolean isPaused;
 
-    @Override
-    public void attachView(V view) {
-        this.mView = view;
+  @Override
+  public void attachView(V view) {
+    this.mView = view;
+  }
+
+  @Override
+  public void resume() {
+    isPaused = false;
+  }
+
+  @Override
+  public void pause() {
+    isPaused = true;
+  }
+
+  @Override
+  public void detachView() {
+    this.mView = null;
+  }
+
+  public V getView() {
+    return mView;
+  }
+
+  public boolean isViewAttached() {
+    return this.mView != null;
+  }
+
+  public void checkViewAttached() {
+    if (!isViewAttached()) throw new ViewNotAttachedException();
+  }
+
+  public static class ViewNotAttachedException extends RuntimeException {
+    public ViewNotAttachedException() {
+      super("Call Presenter.attachView(BaseView)before" + " requesting data to the Presenter");
     }
-
-    @Override
-    public void resume() {
-        isPaused = false;
-    }
-
-    @Override
-    public void pause() {
-        isPaused = true;
-    }
-
-    @Override
-    public void detachView() {
-        this.mView = null;
-    }
-
-    public V getView() {
-        return mView;
-    }
-
-    public boolean isViewAttached(){
-        return this.mView != null;
-    }
-
-    public void checkViewAttached() {
-        if (!isViewAttached()) throw new ViewNotAttachedException();
-    }
-
-    public static class ViewNotAttachedException extends RuntimeException {
-        public ViewNotAttachedException() {
-            super("Call Presenter.attachView(BaseView)before" +
-                    " requesting data to the Presenter");
-        }
-    }
+  }
 }

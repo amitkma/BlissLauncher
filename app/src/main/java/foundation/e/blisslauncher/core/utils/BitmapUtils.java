@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 /e/.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package foundation.e.blisslauncher.core.utils;
 
+package foundation.e.blisslauncher.core.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -25,19 +25,19 @@ import android.graphics.PorterDuffXfermode;
 
 public class BitmapUtils {
 
-    public static Bitmap getCroppedBitmap(Bitmap src, Path path){
-        Bitmap output = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
+  public static Bitmap getCroppedBitmap(Bitmap src, Path path) {
+    Bitmap output = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+    Canvas canvas = new Canvas(output);
 
-        Paint paint = new Paint();
-        paint.setDither(true);
-        paint.setAntiAlias(true);
-        paint.setFilterBitmap(true);
-        paint.setColor(0XFF000000);
+    Paint paint = new Paint();
+    paint.setDither(true);
+    paint.setAntiAlias(true);
+    paint.setFilterBitmap(true);
+    paint.setColor(0XFF000000);
 
-        canvas.drawPath(path, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(src, 0, 0, paint);
-        return output;
-    }
+    canvas.drawPath(path, paint);
+    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+    canvas.drawBitmap(src, 0, 0, paint);
+    return output;
+  }
 }

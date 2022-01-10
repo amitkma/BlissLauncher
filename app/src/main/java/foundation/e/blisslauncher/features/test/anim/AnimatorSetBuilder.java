@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (c) 2017 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,83 +13,80 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.features.test.anim;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.util.SparseArray;
 import android.view.animation.Interpolator;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Utility class for building animator set
- */
+/** Utility class for building animator set */
 public class AnimatorSetBuilder {
 
-    public static final int ANIM_VERTICAL_PROGRESS = 0;
-    public static final int ANIM_WORKSPACE_SCALE = 1;
-    public static final int ANIM_WORKSPACE_TRANSLATE = 2;
-    public static final int ANIM_WORKSPACE_FADE = 3;
-    public static final int ANIM_HOTSEAT_SCALE = 4;
-    public static final int ANIM_HOTSEAT_TRANSLATE = 5;
-    public static final int ANIM_OVERVIEW_SCALE = 6;
-    public static final int ANIM_OVERVIEW_TRANSLATE_X = 7;
-    public static final int ANIM_OVERVIEW_TRANSLATE_Y = 8;
-    public static final int ANIM_OVERVIEW_FADE = 9;
+  public static final int ANIM_VERTICAL_PROGRESS = 0;
+  public static final int ANIM_WORKSPACE_SCALE = 1;
+  public static final int ANIM_WORKSPACE_TRANSLATE = 2;
+  public static final int ANIM_WORKSPACE_FADE = 3;
+  public static final int ANIM_HOTSEAT_SCALE = 4;
+  public static final int ANIM_HOTSEAT_TRANSLATE = 5;
+  public static final int ANIM_OVERVIEW_SCALE = 6;
+  public static final int ANIM_OVERVIEW_TRANSLATE_X = 7;
+  public static final int ANIM_OVERVIEW_TRANSLATE_Y = 8;
+  public static final int ANIM_OVERVIEW_FADE = 9;
 
-    public static final int FLAG_DONT_ANIMATE_OVERVIEW = 1 << 0;
+  public static final int FLAG_DONT_ANIMATE_OVERVIEW = 1 << 0;
 
-    protected final ArrayList<Animator> mAnims = new ArrayList<>();
+  protected final ArrayList<Animator> mAnims = new ArrayList<>();
 
-    private final SparseArray<Interpolator> mInterpolators = new SparseArray<>();
-    private List<Runnable> mOnFinishRunnables = new ArrayList<>();
-    private int mFlags = 0;
+  private final SparseArray<Interpolator> mInterpolators = new SparseArray<>();
+  private List<Runnable> mOnFinishRunnables = new ArrayList<>();
+  private int mFlags = 0;
 
-    /**
-     * Associates a tag with all the animations added after this call.
-     */
-    public void startTag(Object obj) { }
+  /** Associates a tag with all the animations added after this call. */
+  public void startTag(Object obj) {}
 
-    public void play(Animator anim) {
-        mAnims.add(anim);
+  public void play(Animator anim) {
+    mAnims.add(anim);
+  }
+
+  public void addOnFinishRunnable(Runnable onFinishRunnable) {
+    mOnFinishRunnables.add(onFinishRunnable);
+  }
+
+  public AnimatorSet build() {
+    AnimatorSet anim = LauncherAnimUtils.createAnimatorSet();
+    anim.playTogether(mAnims);
+    if (!mOnFinishRunnables.isEmpty()) {
+      anim.addListener(
+          new AnimationSuccessListener() {
+            @Override
+            public void onAnimationSuccess(Animator animation) {
+              for (Runnable onFinishRunnable : mOnFinishRunnables) {
+                onFinishRunnable.run();
+              }
+              mOnFinishRunnables.clear();
+            }
+          });
     }
+    return anim;
+  }
 
-    public void addOnFinishRunnable(Runnable onFinishRunnable) {
-        mOnFinishRunnables.add(onFinishRunnable);
-    }
+  public Interpolator getInterpolator(int animId, Interpolator fallback) {
+    return mInterpolators.get(animId, fallback);
+  }
 
-    public AnimatorSet build() {
-        AnimatorSet anim = LauncherAnimUtils.createAnimatorSet();
-        anim.playTogether(mAnims);
-        if (!mOnFinishRunnables.isEmpty()) {
-            anim.addListener(new AnimationSuccessListener() {
-                @Override
-                public void onAnimationSuccess(Animator animation) {
-                    for (Runnable onFinishRunnable : mOnFinishRunnables) {
-                        onFinishRunnable.run();
-                    }
-                    mOnFinishRunnables.clear();
-                }
-            });
-        }
-        return anim;
-    }
+  public void setInterpolator(int animId, Interpolator interpolator) {
+    mInterpolators.put(animId, interpolator);
+  }
 
-    public Interpolator getInterpolator(int animId, Interpolator fallback) {
-        return mInterpolators.get(animId, fallback);
-    }
+  public void addFlag(int flag) {
+    mFlags |= flag;
+  }
 
-    public void setInterpolator(int animId, Interpolator interpolator) {
-        mInterpolators.put(animId, interpolator);
-    }
-
-    public void addFlag(int flag) {
-        mFlags |= flag;
-    }
-
-    public boolean hasFlag(int flag) {
-        return (mFlags & flag) != 0;
-    }
+  public boolean hasFlag(int flag) {
+    return (mFlags & flag) != 0;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Amit Kumar.
+ * Copyright (c) 2016 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.core.utils;
 
-/**
- * Utility class to allow lazy initialization of objects.
- */
+/** Utility class to allow lazy initialization of objects. */
 public abstract class Provider<T> {
 
-    /**
-     * Initializes and returns the object. This may contain expensive operations not suitable
-     * to UI thread.
-     */
-    public abstract T get();
+  /**
+   * Initializes and returns the object. This may contain expensive operations not suitable to UI
+   * thread.
+   */
+  public abstract T get();
 
-    public static <T> Provider<T> of (final T value) {
-        return new Provider<T>() {
-            @Override
-            public T get() {
-                return value;
-            }
-        };
-    }
+  public static <T> Provider<T> of(final T value) {
+    return new Provider<T>() {
+      @Override
+      public T get() {
+        return value;
+      }
+    };
+  }
 }

@@ -1,10 +1,10 @@
 import foundation.e.blisslauncher.buildsrc.Libs
-import foundation.e.blisslauncher.buildsrc.Versions
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply from: file('../spotless/spotless.gradle')
 
 // Manifest version information!
 def versionMajor = 1

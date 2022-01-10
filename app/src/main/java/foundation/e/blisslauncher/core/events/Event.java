@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Amit Kumar.
+ * Copyright (c) 2022 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.core.events;
 
-/**
- * All event classes must inherit from this class.
- */
+/** All event classes must inherit from this class. */
 public class Event {
 
-    private final int eventType;
+  private final int eventType;
 
-    public Event(int eventType) {
-        this.eventType = eventType;
-    }
+  public Event(int eventType) {
+    this.eventType = eventType;
+  }
 
-    public int getEventType() {
-        return eventType;
-    }
+  public int getEventType() {
+    return eventType;
+  }
 }

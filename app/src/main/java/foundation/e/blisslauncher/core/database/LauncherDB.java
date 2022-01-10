@@ -1,6 +1,20 @@
+/*
+ * Copyright (c) 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package foundation.e.blisslauncher.core.database;
-
-
 
 import android.content.Context;
 import androidx.annotation.NonNull;
@@ -16,56 +30,62 @@ import foundation.e.blisslauncher.core.database.daos.WidgetDao;
 import foundation.e.blisslauncher.core.database.model.LauncherItem;
 import foundation.e.blisslauncher.core.database.model.WidgetItem;
 
-@Database(entities = {LauncherItem.class, WidgetItem.class}, version = 4, exportSchema = false)
+@Database(
+    entities = {LauncherItem.class, WidgetItem.class},
+    version = 4,
+    exportSchema = false)
 @TypeConverters({CharSequenceConverter.class})
 public abstract class LauncherDB extends RoomDatabase {
 
-    public abstract LauncherDao launcherDao();
+  public abstract LauncherDao launcherDao();
 
-    public abstract WidgetDao widgetDao();
+  public abstract WidgetDao widgetDao();
 
-    private static volatile LauncherDB INSTANCE;
+  private static volatile LauncherDB INSTANCE;
 
-    private static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+  private static final Migration MIGRATION_3_4 =
+      new Migration(3, 4) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
-            database.execSQL("CREATE TABLE IF NOT EXISTS `widget_items` (`id` INTEGER NOT NULL, `height` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+          database.execSQL(
+              "CREATE TABLE IF NOT EXISTS `widget_items` (`id` INTEGER NOT NULL, `height` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         }
-    };
+      };
 
-    private static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+  private static final Migration MIGRATION_4_5 =
+      new Migration(4, 5) {
         @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-        }
-    };
+        public void migrate(@NonNull SupportSQLiteDatabase database) {}
+      };
 
-    public static LauncherDB getDatabase(Context context) {
+  public static LauncherDB getDatabase(Context context) {
+    if (INSTANCE == null) {
+      synchronized (LauncherDB.class) {
         if (INSTANCE == null) {
-            synchronized (LauncherDB.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            LauncherDB.class, "launcher_db")
-                            .addMigrations(MIGRATION_3_4)
-                            .build();
-                }
-            }
+          INSTANCE =
+              Room.databaseBuilder(context.getApplicationContext(), LauncherDB.class, "launcher_db")
+                  .addMigrations(MIGRATION_3_4)
+                  .build();
         }
-        return INSTANCE;
+      }
+    }
+    return INSTANCE;
+  }
+
+  private static final class UserHandleMigration extends Migration {
+    private long userSerialNumber;
+
+    public UserHandleMigration(int startVersion, int endVersion, long userSerialNumber) {
+      super(startVersion, endVersion);
+      this.userSerialNumber = userSerialNumber;
     }
 
-    private static final class UserHandleMigration extends Migration {
-        private long userSerialNumber;
-
-        public UserHandleMigration(int startVersion, int endVersion, long userSerialNumber) {
-            super(startVersion, endVersion);
-            this.userSerialNumber = userSerialNumber;
-        }
-
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-            String suffix = "\"/" + userSerialNumber +"\"";
-            String query = "UPDATE launcher_items set item_id=item_id || " + suffix +  "WHERE item_type <> 2";
-            database.execSQL(query);
-        }
+    @Override
+    public void migrate(@NonNull SupportSQLiteDatabase database) {
+      String suffix = "\"/" + userSerialNumber + "\"";
+      String query =
+          "UPDATE launcher_items set item_id=item_id || " + suffix + "WHERE item_type <> 2";
+      database.execSQL(query);
     }
+  }
 }

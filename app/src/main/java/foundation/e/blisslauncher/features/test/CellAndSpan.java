@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Amit Kumar.
+ * Copyright (c) 2022 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.features.test;
 
-/**
- * Base class which represents an area on the grid.
- */
+/** Base class which represents an area on the grid. */
 public class CellAndSpan {
 
-    /**
-     * Indicates the X position of the associated cell.
-     */
-    public int cellX = -1;
+  /** Indicates the X position of the associated cell. */
+  public int cellX = -1;
 
-    /**
-     * Indicates the Y position of the associated cell.
-     */
-    public int cellY = -1;
+  /** Indicates the Y position of the associated cell. */
+  public int cellY = -1;
 
-    public CellAndSpan() {
-    }
+  public CellAndSpan() {}
 
-    public void copyFrom(CellAndSpan copy) {
-        cellX = copy.cellX;
-        cellY = copy.cellY;
-    }
+  public void copyFrom(CellAndSpan copy) {
+    cellX = copy.cellX;
+    cellY = copy.cellY;
+  }
 
-    public CellAndSpan(int cellX, int cellY) {
-        this.cellX = cellX;
-        this.cellY = cellY;
-    }
+  public CellAndSpan(int cellX, int cellY) {
+    this.cellX = cellX;
+    this.cellY = cellY;
+  }
 
-    public String toString() {
-        return "(" + cellX + ", " + cellY + ")";
-    }
+  public String toString() {
+    return "(" + cellX + ", " + cellY + ")";
+  }
 }

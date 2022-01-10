@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.inputconsumers;
 
 import static android.view.MotionEvent.ACTION_CANCEL;
@@ -54,301 +55,315 @@ import foundation.e.blisslauncher.quickstep.util.NavBarPosition;
 import foundation.e.blisslauncher.quickstep.util.RecentsAnimationListenerSet;
 import foundation.e.blisslauncher.quickstep.util.SwipeAnimationTargetSet;
 
-public class FallbackNoButtonInputConsumer implements InputConsumer,
-    SwipeAnimationTargetSet.SwipeAnimationListener {
+public class FallbackNoButtonInputConsumer
+    implements InputConsumer, SwipeAnimationTargetSet.SwipeAnimationListener {
 
-    private static final int STATE_NOT_FINISHED = 0;
-    private static final int STATE_FINISHED_TO_HOME = 1;
-    private static final int STATE_FINISHED_TO_APP = 2;
+  private static final int STATE_NOT_FINISHED = 0;
+  private static final int STATE_FINISHED_TO_HOME = 1;
+  private static final int STATE_FINISHED_TO_APP = 2;
 
-    private static final float PROGRESS_TO_END_GESTURE = -2;
+  private static final float PROGRESS_TO_END_GESTURE = -2;
 
-    private final ActivityControlHelper mActivityControlHelper;
-    private final InputMonitorCompat mInputMonitor;
-    private final Context mContext;
-    private final NavBarPosition mNavBarPosition;
-    private final SwipeSharedState mSwipeSharedState;
-    private final OverviewComponentObserver mOverviewComponentObserver;
-    private final int mRunningTaskId;
+  private final ActivityControlHelper mActivityControlHelper;
+  private final InputMonitorCompat mInputMonitor;
+  private final Context mContext;
+  private final NavBarPosition mNavBarPosition;
+  private final SwipeSharedState mSwipeSharedState;
+  private final OverviewComponentObserver mOverviewComponentObserver;
+  private final int mRunningTaskId;
 
-    private final ClipAnimationHelper mClipAnimationHelper;
-    private final ClipAnimationHelper.TransformParams
-        mTransformParams = new ClipAnimationHelper.TransformParams();
-    private final float mTransitionDragLength;
-    private final VariantDeviceProfile mDP;
+  private final ClipAnimationHelper mClipAnimationHelper;
+  private final ClipAnimationHelper.TransformParams mTransformParams =
+      new ClipAnimationHelper.TransformParams();
+  private final float mTransitionDragLength;
+  private final VariantDeviceProfile mDP;
 
-    private final RectF mSwipeTouchRegion;
-    private final boolean mDisableHorizontalSwipe;
+  private final RectF mSwipeTouchRegion;
+  private final boolean mDisableHorizontalSwipe;
 
-    private final PointF mDownPos = new PointF();
-    private final PointF mLastPos = new PointF();
+  private final PointF mDownPos = new PointF();
+  private final PointF mLastPos = new PointF();
 
-    private int mActivePointerId = -1;
-    // Slop used to determine when we say that the gesture has started.
-    private boolean mPassedPilferInputSlop;
+  private int mActivePointerId = -1;
+  // Slop used to determine when we say that the gesture has started.
+  private boolean mPassedPilferInputSlop;
 
-    private VelocityTracker mVelocityTracker;
+  private VelocityTracker mVelocityTracker;
 
-    // Distance after which we start dragging the window.
-    private final float mTouchSlop;
+  // Distance after which we start dragging the window.
+  private final float mTouchSlop;
 
-    // Might be displacement in X or Y, depending on the direction we are swiping from the nav bar.
-    private float mStartDisplacement;
-    private SwipeAnimationTargetSet mSwipeAnimationTargetSet;
-    private float mProgress;
+  // Might be displacement in X or Y, depending on the direction we are swiping from the nav bar.
+  private float mStartDisplacement;
+  private SwipeAnimationTargetSet mSwipeAnimationTargetSet;
+  private float mProgress;
 
-    private int mState = STATE_NOT_FINISHED;
+  private int mState = STATE_NOT_FINISHED;
 
-    public FallbackNoButtonInputConsumer(Context context,
-            ActivityControlHelper activityControlHelper, InputMonitorCompat inputMonitor,
-            SwipeSharedState swipeSharedState, RectF swipeTouchRegion,
-            OverviewComponentObserver overviewComponentObserver,
-            boolean disableHorizontalSwipe, RunningTaskInfo runningTaskInfo) {
-        mContext = context;
-        mActivityControlHelper = activityControlHelper;
-        mInputMonitor = inputMonitor;
-        mOverviewComponentObserver = overviewComponentObserver;
-        mRunningTaskId = runningTaskInfo.id;
+  public FallbackNoButtonInputConsumer(
+      Context context,
+      ActivityControlHelper activityControlHelper,
+      InputMonitorCompat inputMonitor,
+      SwipeSharedState swipeSharedState,
+      RectF swipeTouchRegion,
+      OverviewComponentObserver overviewComponentObserver,
+      boolean disableHorizontalSwipe,
+      RunningTaskInfo runningTaskInfo) {
+    mContext = context;
+    mActivityControlHelper = activityControlHelper;
+    mInputMonitor = inputMonitor;
+    mOverviewComponentObserver = overviewComponentObserver;
+    mRunningTaskId = runningTaskInfo.id;
 
-        mSwipeSharedState = swipeSharedState;
-        mSwipeTouchRegion = swipeTouchRegion;
-        mDisableHorizontalSwipe = disableHorizontalSwipe;
+    mSwipeSharedState = swipeSharedState;
+    mSwipeTouchRegion = swipeTouchRegion;
+    mDisableHorizontalSwipe = disableHorizontalSwipe;
 
-        mNavBarPosition = new NavBarPosition(context);
-        mVelocityTracker = VelocityTracker.obtain();
+    mNavBarPosition = new NavBarPosition(context);
+    mVelocityTracker = VelocityTracker.obtain();
 
-        mTouchSlop = QUICKSTEP_TOUCH_SLOP_RATIO
-                * ViewConfiguration.get(context).getScaledTouchSlop();
+    mTouchSlop = QUICKSTEP_TOUCH_SLOP_RATIO * ViewConfiguration.get(context).getScaledTouchSlop();
 
-        mClipAnimationHelper = new ClipAnimationHelper(context);
+    mClipAnimationHelper = new ClipAnimationHelper(context);
 
-        mDP = BlissLauncher.getApplication(context).getInvariantDeviceProfile().getDeviceProfile(context);
-        Rect tempRect = new Rect();
-        mTransitionDragLength = mActivityControlHelper.getSwipeUpDestinationAndLength(
-                mDP, context, tempRect);
-        mClipAnimationHelper.updateTargetRect(tempRect);
+    mDP =
+        BlissLauncher.getApplication(context).getInvariantDeviceProfile().getDeviceProfile(context);
+    Rect tempRect = new Rect();
+    mTransitionDragLength =
+        mActivityControlHelper.getSwipeUpDestinationAndLength(mDP, context, tempRect);
+    mClipAnimationHelper.updateTargetRect(tempRect);
+  }
+
+  @Override
+  public int getType() {
+    return TYPE_FALLBACK_NO_BUTTON;
+  }
+
+  @Override
+  public void onMotionEvent(MotionEvent ev) {
+    if (mVelocityTracker == null) {
+      return;
     }
 
-    @Override
-    public int getType() {
-        return TYPE_FALLBACK_NO_BUTTON;
+    mVelocityTracker.addMovement(ev);
+    if (ev.getActionMasked() == ACTION_POINTER_UP) {
+      mVelocityTracker.clear();
     }
 
-    @Override
-    public void onMotionEvent(MotionEvent ev) {
-        if (mVelocityTracker == null) {
-            return;
+    switch (ev.getActionMasked()) {
+      case ACTION_DOWN:
+        {
+          mActivePointerId = ev.getPointerId(0);
+          mDownPos.set(ev.getX(), ev.getY());
+          mLastPos.set(mDownPos);
+          break;
         }
-
-        mVelocityTracker.addMovement(ev);
-        if (ev.getActionMasked() == ACTION_POINTER_UP) {
-            mVelocityTracker.clear();
+      case ACTION_POINTER_DOWN:
+        {
+          if (!mPassedPilferInputSlop) {
+            // Cancel interaction in case of multi-touch interaction
+            int ptrIdx = ev.getActionIndex();
+            if (!mSwipeTouchRegion.contains(ev.getX(ptrIdx), ev.getY(ptrIdx))) {
+              forceCancelGesture(ev);
+            }
+          }
+          break;
         }
-
-        switch (ev.getActionMasked()) {
-            case ACTION_DOWN: {
-                mActivePointerId = ev.getPointerId(0);
-                mDownPos.set(ev.getX(), ev.getY());
-                mLastPos.set(mDownPos);
-                break;
-            }
-            case ACTION_POINTER_DOWN: {
-                if (!mPassedPilferInputSlop) {
-                    // Cancel interaction in case of multi-touch interaction
-                    int ptrIdx = ev.getActionIndex();
-                    if (!mSwipeTouchRegion.contains(ev.getX(ptrIdx), ev.getY(ptrIdx))) {
-                        forceCancelGesture(ev);
-                    }
-                }
-                break;
-            }
-            case ACTION_POINTER_UP: {
-                int ptrIdx = ev.getActionIndex();
-                int ptrId = ev.getPointerId(ptrIdx);
-                if (ptrId == mActivePointerId) {
-                    final int newPointerIdx = ptrIdx == 0 ? 1 : 0;
-                    mDownPos.set(
-                            ev.getX(newPointerIdx) - (mLastPos.x - mDownPos.x),
-                            ev.getY(newPointerIdx) - (mLastPos.y - mDownPos.y));
-                    mLastPos.set(ev.getX(newPointerIdx), ev.getY(newPointerIdx));
-                    mActivePointerId = ev.getPointerId(newPointerIdx);
-                }
-                break;
-            }
-            case ACTION_MOVE: {
-                int pointerIndex = ev.findPointerIndex(mActivePointerId);
-                if (pointerIndex == INVALID_POINTER_ID) {
-                    break;
-                }
-                mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
-                float displacement = getDisplacement(ev);
-
-                if (!mPassedPilferInputSlop) {
-                    if (mDisableHorizontalSwipe && Math.abs(mLastPos.x - mDownPos.x)
-                            > Math.abs(mLastPos.y - mDownPos.y)) {
-                        // Horizontal gesture is not allowed in this region
-                        forceCancelGesture(ev);
-                        break;
-                    }
-
-                    if (Math.abs(displacement) >= mTouchSlop) {
-                        mPassedPilferInputSlop = true;
-
-                        // Deferred gesture, start the animation and gesture tracking once
-                        // we pass the actual touch slop
-                        startTouchTrackingForWindowAnimation(displacement);
-                    }
-                } else {
-                    updateDisplacement(displacement - mStartDisplacement);
-                }
-                break;
-            }
-            case ACTION_CANCEL:
-            case ACTION_UP: {
-                finishTouchTracking(ev);
-                break;
-            }
+      case ACTION_POINTER_UP:
+        {
+          int ptrIdx = ev.getActionIndex();
+          int ptrId = ev.getPointerId(ptrIdx);
+          if (ptrId == mActivePointerId) {
+            final int newPointerIdx = ptrIdx == 0 ? 1 : 0;
+            mDownPos.set(
+                ev.getX(newPointerIdx) - (mLastPos.x - mDownPos.x),
+                ev.getY(newPointerIdx) - (mLastPos.y - mDownPos.y));
+            mLastPos.set(ev.getX(newPointerIdx), ev.getY(newPointerIdx));
+            mActivePointerId = ev.getPointerId(newPointerIdx);
+          }
+          break;
         }
-    }
+      case ACTION_MOVE:
+        {
+          int pointerIndex = ev.findPointerIndex(mActivePointerId);
+          if (pointerIndex == INVALID_POINTER_ID) {
+            break;
+          }
+          mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
+          float displacement = getDisplacement(ev);
 
-    private void startTouchTrackingForWindowAnimation(float displacement) {
-        mStartDisplacement = Math.min(displacement, -mTouchSlop);
+          if (!mPassedPilferInputSlop) {
+            if (mDisableHorizontalSwipe
+                && Math.abs(mLastPos.x - mDownPos.x) > Math.abs(mLastPos.y - mDownPos.y)) {
+              // Horizontal gesture is not allowed in this region
+              forceCancelGesture(ev);
+              break;
+            }
 
-        RecentsAnimationListenerSet listenerSet =
-                mSwipeSharedState.newRecentsAnimationListenerSet();
-        listenerSet.addListener(this);
-        Intent homeIntent = mOverviewComponentObserver.getHomeIntent();
-        BackgroundExecutor.get().submit(
-                () -> ActivityManagerWrapper.getInstance().startRecentsActivity(
-                        homeIntent, null, listenerSet, null, null));
+            if (Math.abs(displacement) >= mTouchSlop) {
+              mPassedPilferInputSlop = true;
 
-        ActivityManagerWrapper.getInstance().closeSystemWindows(
-                CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-        mInputMonitor.pilferPointers();
-    }
-
-    private void updateDisplacement(float displacement) {
-        mProgress = displacement / mTransitionDragLength;
-        mTransformParams.setProgress(mProgress);
-
-        if (mSwipeAnimationTargetSet != null) {
-            mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
+              // Deferred gesture, start the animation and gesture tracking once
+              // we pass the actual touch slop
+              startTouchTrackingForWindowAnimation(displacement);
+            }
+          } else {
+            updateDisplacement(displacement - mStartDisplacement);
+          }
+          break;
+        }
+      case ACTION_CANCEL:
+      case ACTION_UP:
+        {
+          finishTouchTracking(ev);
+          break;
         }
     }
+  }
 
-    private void forceCancelGesture(MotionEvent ev) {
-        int action = ev.getAction();
-        ev.setAction(ACTION_CANCEL);
-        finishTouchTracking(ev);
-        ev.setAction(action);
+  private void startTouchTrackingForWindowAnimation(float displacement) {
+    mStartDisplacement = Math.min(displacement, -mTouchSlop);
+
+    RecentsAnimationListenerSet listenerSet = mSwipeSharedState.newRecentsAnimationListenerSet();
+    listenerSet.addListener(this);
+    Intent homeIntent = mOverviewComponentObserver.getHomeIntent();
+    BackgroundExecutor.get()
+        .submit(
+            () ->
+                ActivityManagerWrapper.getInstance()
+                    .startRecentsActivity(homeIntent, null, listenerSet, null, null));
+
+    ActivityManagerWrapper.getInstance().closeSystemWindows(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
+    mInputMonitor.pilferPointers();
+  }
+
+  private void updateDisplacement(float displacement) {
+    mProgress = displacement / mTransitionDragLength;
+    mTransformParams.setProgress(mProgress);
+
+    if (mSwipeAnimationTargetSet != null) {
+      mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
+    }
+  }
+
+  private void forceCancelGesture(MotionEvent ev) {
+    int action = ev.getAction();
+    ev.setAction(ACTION_CANCEL);
+    finishTouchTracking(ev);
+    ev.setAction(action);
+  }
+
+  /**
+   * Called when the gesture has ended. Does not correlate to the completion of the interaction as
+   * the animation can still be running.
+   */
+  private void finishTouchTracking(MotionEvent ev) {
+    if (ev.getAction() == ACTION_CANCEL) {
+      mState = STATE_FINISHED_TO_APP;
+    } else {
+      mVelocityTracker.computeCurrentVelocity(
+          1000, ViewConfiguration.get(mContext).getScaledMaximumFlingVelocity());
+      float velocityX = mVelocityTracker.getXVelocity(mActivePointerId);
+      float velocityY = mVelocityTracker.getYVelocity(mActivePointerId);
+      float velocity =
+          mNavBarPosition.isRightEdge()
+              ? velocityX
+              : mNavBarPosition.isLeftEdge() ? -velocityX : velocityY;
+      float flingThreshold =
+          mContext.getResources().getDimension(R.dimen.quickstep_fling_threshold_velocity);
+      boolean isFling = Math.abs(velocity) > flingThreshold;
+
+      boolean goingHome;
+      if (!isFling) {
+        goingHome = -mProgress >= WindowTransformSwipeHandler.MIN_PROGRESS_FOR_OVERVIEW;
+      } else {
+        goingHome = velocity < 0;
+      }
+
+      if (goingHome) {
+        mState = STATE_FINISHED_TO_HOME;
+      } else {
+        mState = STATE_FINISHED_TO_APP;
+      }
     }
 
-    /**
-     * Called when the gesture has ended. Does not correlate to the completion of the interaction as
-     * the animation can still be running.
-     */
-    private void finishTouchTracking(MotionEvent ev) {
-        if (ev.getAction() == ACTION_CANCEL) {
-            mState = STATE_FINISHED_TO_APP;
-        } else {
-            mVelocityTracker.computeCurrentVelocity(1000,
-                    ViewConfiguration.get(mContext).getScaledMaximumFlingVelocity());
-            float velocityX = mVelocityTracker.getXVelocity(mActivePointerId);
-            float velocityY = mVelocityTracker.getYVelocity(mActivePointerId);
-            float velocity = mNavBarPosition.isRightEdge() ? velocityX
-                    : mNavBarPosition.isLeftEdge() ? -velocityX
-                            : velocityY;
-            float flingThreshold = mContext.getResources()
-                    .getDimension(R.dimen.quickstep_fling_threshold_velocity);
-            boolean isFling = Math.abs(velocity) > flingThreshold;
-
-            boolean goingHome;
-            if (!isFling) {
-                goingHome = -mProgress >= WindowTransformSwipeHandler.MIN_PROGRESS_FOR_OVERVIEW;
-            } else {
-                goingHome = velocity < 0;
-            }
-
-            if (goingHome) {
-                mState = STATE_FINISHED_TO_HOME;
-            } else {
-                mState = STATE_FINISHED_TO_APP;
-            }
-        }
-
-        if (mSwipeAnimationTargetSet != null) {
-            finishAnimationTargetSet();
-        }
+    if (mSwipeAnimationTargetSet != null) {
+      finishAnimationTargetSet();
     }
+  }
 
-    private void finishAnimationTargetSet() {
-        if (mState == STATE_FINISHED_TO_APP) {
-            mSwipeAnimationTargetSet.finishController(false, null, false);
-        } else {
-            if (mProgress < PROGRESS_TO_END_GESTURE) {
+  private void finishAnimationTargetSet() {
+    if (mState == STATE_FINISHED_TO_APP) {
+      mSwipeAnimationTargetSet.finishController(false, null, false);
+    } else {
+      if (mProgress < PROGRESS_TO_END_GESTURE) {
+        mSwipeAnimationTargetSet.finishController(true, null, true);
+      } else {
+        long duration =
+            (long)
+                (Math.min(mProgress - PROGRESS_TO_END_GESTURE, 1)
+                    * WindowTransformSwipeHandler.MAX_SWIPE_DURATION
+                    / Math.abs(PROGRESS_TO_END_GESTURE));
+        if (duration < 0) {
+          duration = WindowTransformSwipeHandler.MIN_SWIPE_DURATION;
+        }
+
+        ValueAnimator anim = ValueAnimator.ofFloat(mProgress, PROGRESS_TO_END_GESTURE);
+        anim.addUpdateListener(
+            a -> {
+              float p = (Float) anim.getAnimatedValue();
+              mTransformParams.setProgress(p);
+              mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
+            });
+        anim.setDuration(duration);
+        anim.addListener(
+            new AnimatorListenerAdapter() {
+              @Override
+              public void onAnimationEnd(Animator animation) {
                 mSwipeAnimationTargetSet.finishController(true, null, true);
-            } else {
-                long duration = (long) (Math.min(mProgress - PROGRESS_TO_END_GESTURE, 1)
-                        * WindowTransformSwipeHandler.MAX_SWIPE_DURATION / Math.abs(PROGRESS_TO_END_GESTURE));
-                if (duration < 0) {
-                    duration = WindowTransformSwipeHandler.MIN_SWIPE_DURATION;
-                }
-
-                ValueAnimator anim = ValueAnimator.ofFloat(mProgress, PROGRESS_TO_END_GESTURE);
-                anim.addUpdateListener(a -> {
-                    float p = (Float) anim.getAnimatedValue();
-                    mTransformParams.setProgress(p);
-                    mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
-                });
-                anim.setDuration(duration);
-                anim.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        mSwipeAnimationTargetSet.finishController(true, null, true);
-                    }
-                });
-                anim.start();
-            }
-        }
+              }
+            });
+        anim.start();
+      }
     }
+  }
 
-    @Override
-    public void onRecentsAnimationStart(SwipeAnimationTargetSet targetSet) {
-        mSwipeAnimationTargetSet = targetSet;
-        Rect overviewStackBounds = new Rect(0, 0, mDP.getWidthPx(), mDP.getHeightPx());
-        RemoteAnimationTargetCompat runningTaskTarget = targetSet.findTask(mRunningTaskId);
+  @Override
+  public void onRecentsAnimationStart(SwipeAnimationTargetSet targetSet) {
+    mSwipeAnimationTargetSet = targetSet;
+    Rect overviewStackBounds = new Rect(0, 0, mDP.getWidthPx(), mDP.getHeightPx());
+    RemoteAnimationTargetCompat runningTaskTarget = targetSet.findTask(mRunningTaskId);
 
-        mDP.updateIsSeascape(mContext.getSystemService(WindowManager.class));
-        if (runningTaskTarget != null) {
-            mClipAnimationHelper.updateSource(overviewStackBounds, runningTaskTarget);
-        }
-        mClipAnimationHelper.prepareAnimation(mDP, false /* isOpening */);
-
-        overviewStackBounds
-                .inset(-overviewStackBounds.width() / 5, -overviewStackBounds.height() / 5);
-        mClipAnimationHelper.updateTargetRect(overviewStackBounds);
-        mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
-
-        if (mState != STATE_NOT_FINISHED) {
-            finishAnimationTargetSet();
-        }
+    mDP.updateIsSeascape(mContext.getSystemService(WindowManager.class));
+    if (runningTaskTarget != null) {
+      mClipAnimationHelper.updateSource(overviewStackBounds, runningTaskTarget);
     }
+    mClipAnimationHelper.prepareAnimation(mDP, false /* isOpening */);
 
-    @Override
-    public void onRecentsAnimationCanceled() { }
+    overviewStackBounds.inset(-overviewStackBounds.width() / 5, -overviewStackBounds.height() / 5);
+    mClipAnimationHelper.updateTargetRect(overviewStackBounds);
+    mClipAnimationHelper.applyTransform(mSwipeAnimationTargetSet, mTransformParams);
 
-    private float getDisplacement(MotionEvent ev) {
-        if (mNavBarPosition.isRightEdge()) {
-            return ev.getX() - mDownPos.x;
-        } else if (mNavBarPosition.isLeftEdge()) {
-            return mDownPos.x - ev.getX();
-        } else {
-            return ev.getY() - mDownPos.y;
-        }
+    if (mState != STATE_NOT_FINISHED) {
+      finishAnimationTargetSet();
     }
+  }
 
-    @Override
-    public boolean allowInterceptByParent() {
-        return !mPassedPilferInputSlop;
+  @Override
+  public void onRecentsAnimationCanceled() {}
+
+  private float getDisplacement(MotionEvent ev) {
+    if (mNavBarPosition.isRightEdge()) {
+      return ev.getX() - mDownPos.x;
+    } else if (mNavBarPosition.isLeftEdge()) {
+      return mDownPos.x - ev.getX();
+    } else {
+      return ev.getY() - mDownPos.y;
     }
+  }
+
+  @Override
+  public boolean allowInterceptByParent() {
+    return !mPassedPilferInputSlop;
+  }
 }

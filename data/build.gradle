@@ -4,6 +4,7 @@ import foundation.e.blisslauncher.buildsrc.Versions
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply from: file('../spotless/spotless.gradle')
 
 android {
     compileSdkVersion buildConfig.compileSdk

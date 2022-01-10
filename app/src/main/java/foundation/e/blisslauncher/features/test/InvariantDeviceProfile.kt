@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Amit Kumar.
+ * Copyright (c) 2022 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.features.test
-/*
- * Copyright (C) 2015 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import android.content.Context
 import android.content.res.Configuration
@@ -175,7 +161,7 @@ open class InvariantDeviceProfile {
         its: Float,
         hs: Int,
         dlId: Int,
-        dmlId: Int
+        dmlId: Int,
     ) {
         name = n
         minWidthDps = w
@@ -200,10 +186,10 @@ open class InvariantDeviceProfile {
                 val depth = parser.depth
                 var type: Int
                 while ((
-                    parser.next().also {
-                        type = it
-                    } != XmlPullParser.END_TAG ||
-                        parser.depth > depth
+                    parser.next()
+                        .also {
+                            type = it
+                        } != XmlPullParser.END_TAG || parser.depth > depth
                     ) && type != XmlPullParser.END_DOCUMENT
                 ) {
                     if (type == XmlPullParser.START_TAG && "profile" == parser.name) {
@@ -306,7 +292,12 @@ open class InvariantDeviceProfile {
         return density
     }
 
-    fun dist(x0: Float, y0: Float, x1: Float, y1: Float): Float {
+    fun dist(
+        x0: Float,
+        y0: Float,
+        x1: Float,
+        y1: Float,
+    ): Float {
         return hypot(x1 - x0, y1 - y0)
     }
 
@@ -316,7 +307,7 @@ open class InvariantDeviceProfile {
     fun findClosestDeviceProfiles(
         width: Float,
         height: Float,
-        points: ArrayList<InvariantDeviceProfile>
+        points: ArrayList<InvariantDeviceProfile>,
     ): ArrayList<InvariantDeviceProfile> {
         // Sort the profiles by their closeness to the dimensions
         var pointsByNearness = points
@@ -340,7 +331,7 @@ open class InvariantDeviceProfile {
     fun invDistWeightedInterpolate(
         width: Float,
         height: Float,
-        points: ArrayList<InvariantDeviceProfile>
+        points: ArrayList<InvariantDeviceProfile>,
     ): InvariantDeviceProfile {
         var weights = 0f
         var p = points[0]
@@ -396,7 +387,7 @@ open class InvariantDeviceProfile {
         y0: Float,
         x1: Float,
         y1: Float,
-        pow: Float
+        pow: Float,
     ): Float {
         val d = dist(x0, y0, x1, y1)
         return if (d.compareTo(0f) == 0) {

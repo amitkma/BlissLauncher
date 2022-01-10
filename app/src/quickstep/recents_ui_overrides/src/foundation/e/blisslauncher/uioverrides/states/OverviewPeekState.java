@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.uioverrides.states;
 
 import static foundation.e.blisslauncher.features.test.anim.AnimatorSetBuilder.ANIM_OVERVIEW_FADE;
@@ -26,24 +27,25 @@ import foundation.e.blisslauncher.features.test.TestActivity;
 import foundation.e.blisslauncher.features.test.anim.AnimatorSetBuilder;
 
 public class OverviewPeekState extends OverviewState {
-    public OverviewPeekState(int id) {
-        super(id);
-    }
+  public OverviewPeekState(int id) {
+    super(id);
+  }
 
-    @Override
-    public ScaleAndTranslation getOverviewScaleAndTranslation(TestActivity launcher) {
-        ScaleAndTranslation result = super.getOverviewScaleAndTranslation(launcher);
-        result.translationX = NORMAL.getOverviewScaleAndTranslation(launcher).translationX
-                - launcher.getResources().getDimension(R.dimen.overview_peek_distance);
-        return result;
-    }
+  @Override
+  public ScaleAndTranslation getOverviewScaleAndTranslation(TestActivity launcher) {
+    ScaleAndTranslation result = super.getOverviewScaleAndTranslation(launcher);
+    result.translationX =
+        NORMAL.getOverviewScaleAndTranslation(launcher).translationX
+            - launcher.getResources().getDimension(R.dimen.overview_peek_distance);
+    return result;
+  }
 
-    @Override
-    public void prepareForAtomicAnimation(TestActivity launcher, LauncherState fromState,
-            AnimatorSetBuilder builder) {
-        if (this == OVERVIEW_PEEK && fromState == NORMAL) {
-            builder.setInterpolator(ANIM_OVERVIEW_FADE, INSTANT);
-            builder.setInterpolator(ANIM_OVERVIEW_TRANSLATE_X, OVERSHOOT_1_7);
-        }
+  @Override
+  public void prepareForAtomicAnimation(
+      TestActivity launcher, LauncherState fromState, AnimatorSetBuilder builder) {
+    if (this == OVERVIEW_PEEK && fromState == NORMAL) {
+      builder.setInterpolator(ANIM_OVERVIEW_FADE, INSTANT);
+      builder.setInterpolator(ANIM_OVERVIEW_TRANSLATE_X, OVERSHOOT_1_7);
     }
+  }
 }

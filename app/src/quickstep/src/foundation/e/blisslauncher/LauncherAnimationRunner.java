@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Amit Kumar.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher;
 
 import static com.android.systemui.shared.recents.utilities.Utilities.postAtFrontOfQueueAsynchronously;
@@ -33,106 +34,106 @@ import com.android.systemui.shared.system.RemoteAnimationTargetCompat;
 @TargetApi(Build.VERSION_CODES.P)
 public abstract class LauncherAnimationRunner implements RemoteAnimationRunnerCompat {
 
-    private final Handler mHandler;
-    private final boolean mStartAtFrontOfQueue;
-    private AnimationResult mAnimationResult;
+  private final Handler mHandler;
+  private final boolean mStartAtFrontOfQueue;
+  private AnimationResult mAnimationResult;
 
-    /**
-     * @param startAtFrontOfQueue If true, the animation start will be posted at the front of the
-     *                            queue to minimize latency.
-     */
-    public LauncherAnimationRunner(Handler handler, boolean startAtFrontOfQueue) {
-        mHandler = handler;
-        mStartAtFrontOfQueue = startAtFrontOfQueue;
-    }
+  /**
+   * @param startAtFrontOfQueue If true, the animation start will be posted at the front of the
+   *     queue to minimize latency.
+   */
+  public LauncherAnimationRunner(Handler handler, boolean startAtFrontOfQueue) {
+    mHandler = handler;
+    mStartAtFrontOfQueue = startAtFrontOfQueue;
+  }
 
-    @BinderThread
-    @Override
-    public void onAnimationStart(RemoteAnimationTargetCompat[] targetCompats, Runnable runnable) {
-        Runnable r = () -> {
-            finishExistingAnimation();
-            mAnimationResult = new AnimationResult(runnable);
-            onCreateAnimation(targetCompats, mAnimationResult);
+  @BinderThread
+  @Override
+  public void onAnimationStart(RemoteAnimationTargetCompat[] targetCompats, Runnable runnable) {
+    Runnable r =
+        () -> {
+          finishExistingAnimation();
+          mAnimationResult = new AnimationResult(runnable);
+          onCreateAnimation(targetCompats, mAnimationResult);
         };
-        if (mStartAtFrontOfQueue) {
-            postAtFrontOfQueueAsynchronously(mHandler, r);
-        } else {
-            postAsyncCallback(mHandler, r);
-        }
+    if (mStartAtFrontOfQueue) {
+      postAtFrontOfQueueAsynchronously(mHandler, r);
+    } else {
+      postAsyncCallback(mHandler, r);
+    }
+  }
+
+  /**
+   * Called on the UI thread when the animation targets are received. The implementation must call
+   * {@link AnimationResult#setAnimation(AnimatorSet)} with the target animation to be run.
+   */
+  @UiThread
+  public abstract void onCreateAnimation(
+      RemoteAnimationTargetCompat[] targetCompats, AnimationResult result);
+
+  @UiThread
+  private void finishExistingAnimation() {
+    if (mAnimationResult != null) {
+      mAnimationResult.finish();
+      mAnimationResult = null;
+    }
+  }
+
+  /** Called by the system */
+  @BinderThread
+  @Override
+  public void onAnimationCancelled() {
+    postAsyncCallback(mHandler, this::finishExistingAnimation);
+  }
+
+  public static final class AnimationResult {
+
+    private final Runnable mFinishRunnable;
+
+    private AnimatorSet mAnimator;
+    private boolean mFinished = false;
+    private boolean mInitialized = false;
+
+    private AnimationResult(Runnable finishRunnable) {
+      mFinishRunnable = finishRunnable;
     }
 
-    /**
-     * Called on the UI thread when the animation targets are received. The implementation must
-     * call {@link AnimationResult#setAnimation(AnimatorSet)} with the target animation to be run.
-     */
     @UiThread
-    public abstract void onCreateAnimation(
-            RemoteAnimationTargetCompat[] targetCompats, AnimationResult result);
+    private void finish() {
+      if (!mFinished) {
+        mFinishRunnable.run();
+        mFinished = true;
+      }
+    }
 
     @UiThread
-    private void finishExistingAnimation() {
-        if (mAnimationResult != null) {
-            mAnimationResult.finish();
-            mAnimationResult = null;
-        }
-    }
-
-    /**
-     * Called by the system
-     */
-    @BinderThread
-    @Override
-    public void onAnimationCancelled() {
-        postAsyncCallback(mHandler, this::finishExistingAnimation);
-    }
-
-    public static final class AnimationResult {
-
-        private final Runnable mFinishRunnable;
-
-        private AnimatorSet mAnimator;
-        private boolean mFinished = false;
-        private boolean mInitialized = false;
-
-        private AnimationResult(Runnable finishRunnable) {
-            mFinishRunnable = finishRunnable;
-        }
-
-        @UiThread
-        private void finish() {
-            if (!mFinished) {
-                mFinishRunnable.run();
-                mFinished = true;
-            }
-        }
-
-        @UiThread
-        public void setAnimation(AnimatorSet animation) {
-            if (mInitialized) {
-                throw new IllegalStateException("Animation already initialized");
-            }
-            mInitialized = true;
-            mAnimator = animation;
-            if (mAnimator == null) {
+    public void setAnimation(AnimatorSet animation) {
+      if (mInitialized) {
+        throw new IllegalStateException("Animation already initialized");
+      }
+      mInitialized = true;
+      mAnimator = animation;
+      if (mAnimator == null) {
+        finish();
+      } else if (mFinished) {
+        // Animation callback was already finished, skip the animation.
+        mAnimator.start();
+        mAnimator.end();
+      } else {
+        // Start the animation
+        mAnimator.addListener(
+            new AnimatorListenerAdapter() {
+              @Override
+              public void onAnimationEnd(Animator animation) {
                 finish();
-            } else if (mFinished) {
-                // Animation callback was already finished, skip the animation.
-                mAnimator.start();
-                mAnimator.end();
-            } else {
-                // Start the animation
-                mAnimator.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        finish();
-                    }
-                });
-                mAnimator.start();
+              }
+            });
+        mAnimator.start();
 
-                // Because t=0 has the app icon in its original spot, we can skip the
-                // first frame and have the same movement one frame earlier.
-                mAnimator.setCurrentPlayTime(SINGLE_FRAME_MS);
-            }
-        }
+        // Because t=0 has the app icon in its original spot, we can skip the
+        // first frame and have the same movement one frame earlier.
+        mAnimator.setCurrentPlayTime(SINGLE_FRAME_MS);
+      }
     }
+  }
 }

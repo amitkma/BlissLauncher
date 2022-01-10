@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep;
 
 import static android.content.pm.ActivityInfo.CONFIG_ORIENTATION;
@@ -34,124 +35,118 @@ import java.io.PrintWriter;
  * A base fallback recents activity that provides support for device profile changes, activity
  * lifecycle tracking, and basic input handling from recents.
  *
- * This class is only used as a fallback in case the default launcher does not have a recents
+ * <p>This class is only used as a fallback in case the default launcher does not have a recents
  * implementation.
  */
 public abstract class BaseRecentsActivity extends BaseDraggingActivity {
 
-    private Configuration mOldConfig;
+  private Configuration mOldConfig;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
-        mOldConfig = new Configuration(getResources().getConfiguration());
-        initDeviceProfile();
-        initViews();
+    mOldConfig = new Configuration(getResources().getConfiguration());
+    initDeviceProfile();
+    initViews();
 
-        getSystemUiController().updateUiState(
-            SystemUiController.UI_STATE_BASE_WINDOW,
-                false);
-        RecentsActivityTracker.onRecentsActivityCreate(this);
+    getSystemUiController().updateUiState(SystemUiController.UI_STATE_BASE_WINDOW, false);
+    RecentsActivityTracker.onRecentsActivityCreate(this);
+  }
+
+  /** Init drag layer and overview panel views. */
+  protected abstract void initViews();
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    int diff = newConfig.diff(mOldConfig);
+    if ((diff & (CONFIG_ORIENTATION | CONFIG_SCREEN_SIZE)) != 0) {
+      onHandleConfigChanged();
     }
+    mOldConfig.setTo(newConfig);
+    super.onConfigurationChanged(newConfig);
+  }
 
-    /**
-     * Init drag layer and overview panel views.
-     */
-    abstract protected void initViews();
+  /**
+   * Logic for when device configuration changes (rotation, screen size change, multi-window, etc.)
+   */
+  protected void onHandleConfigChanged() {
+    initDeviceProfile();
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        int diff = newConfig.diff(mOldConfig);
-        if ((diff & (CONFIG_ORIENTATION | CONFIG_SCREEN_SIZE)) != 0) {
-            onHandleConfigChanged();
-        }
-        mOldConfig.setTo(newConfig);
-        super.onConfigurationChanged(newConfig);
-    }
+    AbstractFloatingView.closeOpenViews(this, true, AbstractFloatingView.TYPE_ALL);
+    dispatchDeviceProfileChanged();
 
-    /**
-     * Logic for when device configuration changes (rotation, screen size change, multi-window,
-     * etc.)
-     */
-    protected void onHandleConfigChanged() {
-        initDeviceProfile();
+    reapplyUi();
+  }
 
-        AbstractFloatingView.closeOpenViews(this, true,
-                AbstractFloatingView.TYPE_ALL);
-        dispatchDeviceProfileChanged();
+  /** Initialize/update the device profile. */
+  private void initDeviceProfile() {
+    mDeviceProfile = createDeviceProfile();
+    onDeviceProfileInitiated();
+  }
 
-        reapplyUi();
-    }
+  /**
+   * Generate the device profile to use in this activity.
+   *
+   * @return device profile
+   */
+  protected VariantDeviceProfile createDeviceProfile() {
+    VariantDeviceProfile dp =
+        BlissLauncher.getApplication(this).getInvariantDeviceProfile().getDeviceProfile(this);
 
-    /**
-     * Initialize/update the device profile.
-     */
-    private void initDeviceProfile() {
-        mDeviceProfile = createDeviceProfile();
-        onDeviceProfileInitiated();
-    }
+    // In case we are reusing IDP, create a copy so that we don't conflict with Launcher
+    // activity.
+    return dp.copy(this);
+  }
 
-    /**
-     * Generate the device profile to use in this activity.
-     * @return device profile
-     */
-    protected VariantDeviceProfile createDeviceProfile() {
-        VariantDeviceProfile dp = BlissLauncher.getApplication(this).getInvariantDeviceProfile().getDeviceProfile(this);
+  @Override
+  protected void onStop() {
+    super.onStop();
 
-        // In case we are reusing IDP, create a copy so that we don't conflict with Launcher
-        // activity.
-        return dp.copy(this);
-    }
+    // Workaround for b/78520668, explicitly trim memory once UI is hidden
+    onTrimMemory(TRIM_MEMORY_UI_HIDDEN);
+  }
 
+  @Override
+  public void onEnterAnimationComplete() {
+    super.onEnterAnimationComplete();
+    UiFactory.onEnterAnimationComplete(this);
+  }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+  @Override
+  public void onTrimMemory(int level) {
+    super.onTrimMemory(level);
+    UiFactory.onTrimMemory(this, level);
+  }
 
-        // Workaround for b/78520668, explicitly trim memory once UI is hidden
-        onTrimMemory(TRIM_MEMORY_UI_HIDDEN);
-    }
+  @Override
+  protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    RecentsActivityTracker.onRecentsActivityNewIntent(this);
+  }
 
-    @Override
-    public void onEnterAnimationComplete() {
-        super.onEnterAnimationComplete();
-        UiFactory.onEnterAnimationComplete(this);
-    }
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    RecentsActivityTracker.onRecentsActivityDestroy(this);
+  }
 
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        UiFactory.onTrimMemory(this, level);
-    }
+  @Override
+  public void onBackPressed() {
+    // TODO: Launch the task we came from
+    startHome();
+  }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        RecentsActivityTracker.onRecentsActivityNewIntent(this);
-    }
+  public void startHome() {
+    startActivity(
+        new Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_HOME)
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+  }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        RecentsActivityTracker.onRecentsActivityDestroy(this);
-    }
-
-    @Override
-    public void onBackPressed() {
-        // TODO: Launch the task we came from
-        startHome();
-    }
-
-    public void startHome() {
-        startActivity(new Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_HOME)
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-    }
-
-    @Override
-    public void dump(String prefix, FileDescriptor fd, PrintWriter writer, String[] args) {
-        super.dump(prefix, fd, writer, args);
-        writer.println(prefix + "Misc:");
-    }
+  @Override
+  public void dump(String prefix, FileDescriptor fd, PrintWriter writer, String[] args) {
+    super.dump(prefix, fd, writer, args);
+    writer.println(prefix + "Misc:");
+  }
 }

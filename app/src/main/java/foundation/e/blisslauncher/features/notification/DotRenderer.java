@@ -1,5 +1,20 @@
-package foundation.e.blisslauncher.features.notification;
+/*
+ * Copyright (c) 2022 Amit Kumar.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package foundation.e.blisslauncher.features.notification;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,31 +24,31 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import foundation.e.blisslauncher.R;
 
-/**
- * Created by falcon on 20/3/18.
- */
+/** Created by falcon on 20/3/18. */
 public class DotRenderer {
 
-    private static final float SIZE_PERCENTAGE = 0.3375f;
+  private static final float SIZE_PERCENTAGE = 0.3375f;
 
-    private final Context mContext;
-    private final int mSize;
-    private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG |
-            Paint.FILTER_BITMAP_FLAG);
+  private final Context mContext;
+  private final int mSize;
+  private final Paint mPaint =
+      new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
 
-    public DotRenderer(Context context, int iconSizePx) {
-        mContext = context;
-        this.mSize = (int) (SIZE_PERCENTAGE * iconSizePx);
-    }
+  public DotRenderer(Context context, int iconSizePx) {
+    mContext = context;
+    this.mSize = (int) (SIZE_PERCENTAGE * iconSizePx);
+  }
 
-    public void drawDot(Canvas canvas, Rect iconBounds) {
-        Bitmap myBitmap = BitmapFactory.decodeResource(
-                mContext.getResources(),
-                R.drawable.notification_icon_72);
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(myBitmap, mSize, mSize, true);
+  public void drawDot(Canvas canvas, Rect iconBounds) {
+    Bitmap myBitmap =
+        BitmapFactory.decodeResource(mContext.getResources(), R.drawable.notification_icon_72);
+    Bitmap scaledBitmap = Bitmap.createScaledBitmap(myBitmap, mSize, mSize, true);
 
-        canvas.drawBitmap(scaledBitmap, iconBounds.left - scaledBitmap.getWidth() / 2,
-                iconBounds.top - scaledBitmap.getHeight() / 2, mPaint);
-        //canvas.drawCircle(badgeCenterX, badgeCenterY, mSize/2, mPaint);
-    }
+    canvas.drawBitmap(
+        scaledBitmap,
+        iconBounds.left - scaledBitmap.getWidth() / 2,
+        iconBounds.top - scaledBitmap.getHeight() / 2,
+        mPaint);
+    // canvas.drawCircle(badgeCenterX, badgeCenterY, mSize/2, mPaint);
+  }
 }

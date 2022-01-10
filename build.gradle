@@ -71,8 +71,6 @@ allprojects {
 }
 
 subprojects {
-    apply from: file('../spotless/spotless.gradle')
-
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             // Treat all Kotlin warnings as errors

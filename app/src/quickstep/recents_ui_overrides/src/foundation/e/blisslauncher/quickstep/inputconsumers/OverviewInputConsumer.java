@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.inputconsumers;
 
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
@@ -29,83 +30,80 @@ import foundation.e.blisslauncher.features.test.BaseDraggingActivity;
 import foundation.e.blisslauncher.quickstep.OverviewCallbacks;
 import java.util.function.Predicate;
 
-/**
- * Input consumer for handling touch on the recents/Launcher activity.
- */
-public class OverviewInputConsumer<T extends BaseDraggingActivity>
-        implements InputConsumer {
+/** Input consumer for handling touch on the recents/Launcher activity. */
+public class OverviewInputConsumer<T extends BaseDraggingActivity> implements InputConsumer {
 
-    private final T mActivity;
-    private final BaseDragLayer mTarget;
-    private final InputMonitorCompat mInputMonitor;
+  private final T mActivity;
+  private final BaseDragLayer mTarget;
+  private final InputMonitorCompat mInputMonitor;
 
-    private final int[] mLocationOnScreen = new int[2];
-    private final boolean mProxyTouch;
-    private final Predicate<MotionEvent> mEventReceiver;
+  private final int[] mLocationOnScreen = new int[2];
+  private final boolean mProxyTouch;
+  private final Predicate<MotionEvent> mEventReceiver;
 
-    private final boolean mStartingInActivityBounds;
-    private boolean mTargetHandledTouch;
+  private final boolean mStartingInActivityBounds;
+  private boolean mTargetHandledTouch;
 
-    public OverviewInputConsumer(T activity, @Nullable InputMonitorCompat inputMonitor,
-            boolean startingInActivityBounds) {
-        mActivity = activity;
-        mInputMonitor = inputMonitor;
-        mStartingInActivityBounds = startingInActivityBounds;
+  public OverviewInputConsumer(
+      T activity, @Nullable InputMonitorCompat inputMonitor, boolean startingInActivityBounds) {
+    mActivity = activity;
+    mInputMonitor = inputMonitor;
+    mStartingInActivityBounds = startingInActivityBounds;
 
-        mTarget = activity.getDragLayer();
-        if (startingInActivityBounds) {
-            mEventReceiver = mTarget::dispatchTouchEvent;
-            mProxyTouch = true;
-        } else {
-            // Only proxy touches to controllers if we are starting touch from nav bar.
-            mEventReceiver = mTarget::proxyTouchEvent;
-            mTarget.getLocationOnScreen(mLocationOnScreen);
-            mProxyTouch = mTarget.prepareProxyEventStarting();
-        }
+    mTarget = activity.getDragLayer();
+    if (startingInActivityBounds) {
+      mEventReceiver = mTarget::dispatchTouchEvent;
+      mProxyTouch = true;
+    } else {
+      // Only proxy touches to controllers if we are starting touch from nav bar.
+      mEventReceiver = mTarget::proxyTouchEvent;
+      mTarget.getLocationOnScreen(mLocationOnScreen);
+      mProxyTouch = mTarget.prepareProxyEventStarting();
+    }
+  }
+
+  @Override
+  public int getType() {
+    return TYPE_OVERVIEW;
+  }
+
+  @Override
+  public boolean allowInterceptByParent() {
+    return !mTargetHandledTouch;
+  }
+
+  @Override
+  public void onMotionEvent(MotionEvent ev) {
+    if (!mProxyTouch) {
+      return;
     }
 
-    @Override
-    public int getType() {
-        return TYPE_OVERVIEW;
+    int flags = ev.getEdgeFlags();
+    if (!mStartingInActivityBounds) {
+      ev.setEdgeFlags(flags | Utilities.EDGE_NAV_BAR);
     }
+    ev.offsetLocation(-mLocationOnScreen[0], -mLocationOnScreen[1]);
+    boolean handled = mEventReceiver.test(ev);
+    ev.offsetLocation(mLocationOnScreen[0], mLocationOnScreen[1]);
+    ev.setEdgeFlags(flags);
 
-    @Override
-    public boolean allowInterceptByParent() {
-        return !mTargetHandledTouch;
+    if (!mTargetHandledTouch && handled) {
+      mTargetHandledTouch = true;
+      if (!mStartingInActivityBounds) {
+        OverviewCallbacks.get(mActivity).closeAllWindows();
+        ActivityManagerWrapper.getInstance()
+            .closeSystemWindows(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
+      }
+      if (mInputMonitor != null) {
+        mInputMonitor.pilferPointers();
+      }
     }
+  }
 
-    @Override
-    public void onMotionEvent(MotionEvent ev) {
-        if (!mProxyTouch) {
-            return;
-        }
-
-        int flags = ev.getEdgeFlags();
-        if (!mStartingInActivityBounds) {
-            ev.setEdgeFlags(flags | Utilities.EDGE_NAV_BAR);
-        }
-        ev.offsetLocation(-mLocationOnScreen[0], -mLocationOnScreen[1]);
-        boolean handled = mEventReceiver.test(ev);
-        ev.offsetLocation(mLocationOnScreen[0], mLocationOnScreen[1]);
-        ev.setEdgeFlags(flags);
-
-        if (!mTargetHandledTouch && handled) {
-            mTargetHandledTouch = true;
-            if (!mStartingInActivityBounds) {
-                OverviewCallbacks.get(mActivity).closeAllWindows();
-                ActivityManagerWrapper.getInstance()
-                        .closeSystemWindows(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-            }
-            if (mInputMonitor != null) {
-                mInputMonitor.pilferPointers();
-            }
-        }
+  @Override
+  public void onKeyEvent(KeyEvent ev) {
+    if (ENABLE_QUICKSTEP_LIVE_TILE) {
+      mActivity.dispatchKeyEvent(ev);
     }
-
-    @Override
-    public void onKeyEvent(KeyEvent ev) {
-        if (ENABLE_QUICKSTEP_LIVE_TILE) {
-            mActivity.dispatchKeyEvent(ev);
-        }
-    }
+  }
 }

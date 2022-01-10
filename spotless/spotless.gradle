@@ -1,12 +1,8 @@
-import foundation.e.blisslauncher.buildsrc.Versions
-
 apply plugin: 'com.diffplug.spotless'
 
 spotless {
     java {
-        target '**/*.java'
         importOrder()
-        removeUnusedImports() // removes any unused imports
         licenseHeaderFile rootProject.file('spotless/copyright.kt')
     }
     kotlin {
@@ -14,7 +10,7 @@ spotless {
         targetExclude("$buildDir/**/*.kt")
         targetExclude('bin/**/*.kt')
         targetExclude '**/spotless/*.kt'
-        ktlint(Versions.ktlint)
+        ktlint("0.43.2")
         licenseHeaderFile rootProject.file('spotless/copyright.kt')
     }
     kotlinGradle {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amit Kumar.
+ * Copyright (c) 2019 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.quickstep.inputconsumers;
 
 import static android.view.MotionEvent.ACTION_CANCEL;
@@ -35,126 +36,131 @@ import com.android.systemui.shared.system.InputMonitorCompat;
 import foundation.e.blisslauncher.R;
 import foundation.e.blisslauncher.quickstep.util.MotionPauseDetector;
 
-/**
- * Touch consumer for two finger swipe actions for accessibility actions
- */
+/** Touch consumer for two finger swipe actions for accessibility actions */
 public class AccessibilityInputConsumer extends DelegateInputConsumer {
 
-    private static final String TAG = "A11yInputConsumer";
+  private static final String TAG = "A11yInputConsumer";
 
-    private final ISystemUiProxy mSystemUiProxy;
-    private final VelocityTracker mVelocityTracker;
-    private final MotionPauseDetector mMotionPauseDetector;
-    private final boolean mAllowLongClick;
-    private final RectF mSwipeTouchRegion;
+  private final ISystemUiProxy mSystemUiProxy;
+  private final VelocityTracker mVelocityTracker;
+  private final MotionPauseDetector mMotionPauseDetector;
+  private final boolean mAllowLongClick;
+  private final RectF mSwipeTouchRegion;
 
-    private final float mMinGestureDistance;
-    private final float mMinFlingVelocity;
+  private final float mMinGestureDistance;
+  private final float mMinFlingVelocity;
 
-    private int mActivePointerId = -1;
-    private float mDownY;
-    private float mTotalY;
+  private int mActivePointerId = -1;
+  private float mDownY;
+  private float mTotalY;
 
-    public AccessibilityInputConsumer(Context context, ISystemUiProxy systemUiProxy,
-            boolean allowLongClick, InputConsumer delegate, InputMonitorCompat inputMonitor,
-            RectF swipeTouchRegion) {
-        super(delegate, inputMonitor);
-        mSystemUiProxy = systemUiProxy;
-        mVelocityTracker = VelocityTracker.obtain();
-        mMinGestureDistance = context.getResources()
-                .getDimension(R.dimen.accessibility_gesture_min_swipe_distance);
-        mMinFlingVelocity = ViewConfiguration.get(context).getScaledMinimumFlingVelocity();
-        mSwipeTouchRegion = swipeTouchRegion;
+  public AccessibilityInputConsumer(
+      Context context,
+      ISystemUiProxy systemUiProxy,
+      boolean allowLongClick,
+      InputConsumer delegate,
+      InputMonitorCompat inputMonitor,
+      RectF swipeTouchRegion) {
+    super(delegate, inputMonitor);
+    mSystemUiProxy = systemUiProxy;
+    mVelocityTracker = VelocityTracker.obtain();
+    mMinGestureDistance =
+        context.getResources().getDimension(R.dimen.accessibility_gesture_min_swipe_distance);
+    mMinFlingVelocity = ViewConfiguration.get(context).getScaledMinimumFlingVelocity();
+    mSwipeTouchRegion = swipeTouchRegion;
 
-        mMotionPauseDetector = new MotionPauseDetector(context);
-        mAllowLongClick = allowLongClick;
+    mMotionPauseDetector = new MotionPauseDetector(context);
+    mAllowLongClick = allowLongClick;
+  }
+
+  @Override
+  public int getType() {
+    return TYPE_ACCESSIBILITY | mDelegate.getType();
+  }
+
+  @Override
+  public void onMotionEvent(MotionEvent ev) {
+    if (mState != STATE_DELEGATE_ACTIVE) {
+      mVelocityTracker.addMovement(ev);
     }
 
-    @Override
-    public int getType() {
-        return TYPE_ACCESSIBILITY | mDelegate.getType();
-    }
-
-    @Override
-    public void onMotionEvent(MotionEvent ev) {
-        if (mState != STATE_DELEGATE_ACTIVE) {
-            mVelocityTracker.addMovement(ev);
+    switch (ev.getActionMasked()) {
+      case ACTION_DOWN:
+        {
+          break;
         }
+      case ACTION_POINTER_UP:
+        {
+          if (mState == STATE_ACTIVE) {
+            int pointerIndex = ev.getActionIndex();
+            int pointerId = ev.getPointerId(pointerIndex);
+            if (pointerId == mActivePointerId) {
+              final int newPointerIdx = pointerIndex == 0 ? 1 : 0;
 
-        switch (ev.getActionMasked()) {
-            case ACTION_DOWN: {
-                break;
+              mTotalY += (ev.getY(pointerIndex) - mDownY);
+              mDownY = ev.getY(newPointerIdx);
+              mActivePointerId = ev.getPointerId(newPointerIdx);
             }
-            case ACTION_POINTER_UP: {
-                if (mState == STATE_ACTIVE) {
-                    int pointerIndex = ev.getActionIndex();
-                    int pointerId = ev.getPointerId(pointerIndex);
-                    if (pointerId == mActivePointerId) {
-                        final int newPointerIdx = pointerIndex == 0 ? 1 : 0;
-
-                        mTotalY += (ev.getY(pointerIndex) - mDownY);
-                        mDownY = ev.getY(newPointerIdx);
-                        mActivePointerId = ev.getPointerId(newPointerIdx);
-                    }
-                }
-                break;
-            }
-            case ACTION_POINTER_DOWN: {
-                if (mState == STATE_INACTIVE) {
-                    int pointerIndex = ev.getActionIndex();
-                    if (mSwipeTouchRegion.contains(ev.getX(pointerIndex), ev.getY(pointerIndex))
-                            && mDelegate.allowInterceptByParent()) {
-                        setActive(ev);
-
-                        mActivePointerId = ev.getPointerId(pointerIndex);
-                        mDownY = ev.getY(pointerIndex);
-                    } else {
-                        mState = STATE_DELEGATE_ACTIVE;
-                    }
-                }
-                break;
-            }
-            case ACTION_MOVE: {
-                if (mState == STATE_ACTIVE && mAllowLongClick) {
-                    int pointerIndex = ev.findPointerIndex(mActivePointerId);
-                    if (pointerIndex == -1) {
-                        break;
-                    }
-
-                    mMotionPauseDetector.addPosition(ev.getY(pointerIndex) - mDownY,
-                            ev.getEventTime());
-                }
-                break;
-            }
-            case ACTION_UP:
-                if (mState == STATE_ACTIVE) {
-                    try {
-                        if (mAllowLongClick && mMotionPauseDetector.isPaused()) {
-                            mSystemUiProxy.notifyAccessibilityButtonLongClicked();
-                        } else {
-                            mTotalY += (ev.getY() - mDownY);
-                            mVelocityTracker.computeCurrentVelocity(1000);
-
-                            if ((-mTotalY) > mMinGestureDistance
-                                    || (-mVelocityTracker.getYVelocity()) > mMinFlingVelocity) {
-                                mSystemUiProxy.notifyAccessibilityButtonClicked(
-                                        Display.DEFAULT_DISPLAY);
-                            }
-                        }
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Unable to notify accessibility event", e);
-                    }
-                }
-                // Follow through
-            case ACTION_CANCEL: {
-                mVelocityTracker.recycle();
-                mMotionPauseDetector.clear();
-                break;
-            }
+          }
+          break;
         }
+      case ACTION_POINTER_DOWN:
+        {
+          if (mState == STATE_INACTIVE) {
+            int pointerIndex = ev.getActionIndex();
+            if (mSwipeTouchRegion.contains(ev.getX(pointerIndex), ev.getY(pointerIndex))
+                && mDelegate.allowInterceptByParent()) {
+              setActive(ev);
 
-        if (mState != STATE_ACTIVE) {
-            mDelegate.onMotionEvent(ev);
+              mActivePointerId = ev.getPointerId(pointerIndex);
+              mDownY = ev.getY(pointerIndex);
+            } else {
+              mState = STATE_DELEGATE_ACTIVE;
+            }
+          }
+          break;
+        }
+      case ACTION_MOVE:
+        {
+          if (mState == STATE_ACTIVE && mAllowLongClick) {
+            int pointerIndex = ev.findPointerIndex(mActivePointerId);
+            if (pointerIndex == -1) {
+              break;
+            }
+
+            mMotionPauseDetector.addPosition(ev.getY(pointerIndex) - mDownY, ev.getEventTime());
+          }
+          break;
+        }
+      case ACTION_UP:
+        if (mState == STATE_ACTIVE) {
+          try {
+            if (mAllowLongClick && mMotionPauseDetector.isPaused()) {
+              mSystemUiProxy.notifyAccessibilityButtonLongClicked();
+            } else {
+              mTotalY += (ev.getY() - mDownY);
+              mVelocityTracker.computeCurrentVelocity(1000);
+
+              if ((-mTotalY) > mMinGestureDistance
+                  || (-mVelocityTracker.getYVelocity()) > mMinFlingVelocity) {
+                mSystemUiProxy.notifyAccessibilityButtonClicked(Display.DEFAULT_DISPLAY);
+              }
+            }
+          } catch (RemoteException e) {
+            Log.e(TAG, "Unable to notify accessibility event", e);
+          }
+        }
+        // Follow through
+      case ACTION_CANCEL:
+        {
+          mVelocityTracker.recycle();
+          mMotionPauseDetector.clear();
+          break;
         }
     }
+
+    if (mState != STATE_ACTIVE) {
+      mDelegate.onMotionEvent(ev);
+    }
+  }
 }

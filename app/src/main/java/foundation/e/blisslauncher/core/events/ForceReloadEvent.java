@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Amit Kumar.
+ * Copyright (c) 2022 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foundation.e.blisslauncher.core.events;
 
-public class ForceReloadEvent extends Event{
-    public static final int TYPE = 801;
+public class ForceReloadEvent extends Event {
+  public static final int TYPE = 801;
 
-    public ForceReloadEvent() {
-        super(TYPE);
-    }
+  public ForceReloadEvent() {
+    super(TYPE);
+  }
 }

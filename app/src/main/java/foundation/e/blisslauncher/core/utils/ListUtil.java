@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 /e/.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package foundation.e.blisslauncher.core.utils;
 
+package foundation.e.blisslauncher.core.utils;
 
 import android.app.usage.UsageStats;
 import java.util.ArrayList;
@@ -23,43 +23,39 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created by Amit Kumar
- * Email : mr.doc10jl96@gmail.com
- */
-
+/** Created by Amit Kumar Email : mr.doc10jl96@gmail.com */
 public class ListUtil {
-    @SafeVarargs
-    public static <T> List<T> asSafeList(T... tArr) {
-        return (tArr == null || tArr.length == 0) ? new ArrayList() : Arrays.asList(tArr);
+  @SafeVarargs
+  public static <T> List<T> asSafeList(T... tArr) {
+    return (tArr == null || tArr.length == 0) ? new ArrayList() : Arrays.asList(tArr);
+  }
+
+  /**
+   * To compare if two lists of {@link android.app.usage.UsageStats} contain same packages or not.
+   *
+   * @return true if both the lists contain the same packages otherwise false.
+   */
+  public static boolean areEqualLists(List<UsageStats> first, List<UsageStats> second) {
+    if (first == null) {
+      if (second == null) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    if (second == null) {
+      return false;
     }
 
-    /**
-     * To compare if two lists of {@link android.app.usage.UsageStats} contain same packages or not.
-     *
-     * @return true if both the lists contain the same packages otherwise false.
-     */
-    public static boolean areEqualLists(List<UsageStats> first, List<UsageStats> second) {
-        if (first == null) {
-            if (second == null) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (second == null) {
-            return false;
-        }
-
-        Set<String> packages = new HashSet<>();
-        for (UsageStats usageStats : first) {
-            packages.add(usageStats.getPackageName());
-        }
-
-        for (UsageStats usageStats : second) {
-            packages.remove(usageStats.getPackageName());
-        }
-
-        return packages.size() == 0;
+    Set<String> packages = new HashSet<>();
+    for (UsageStats usageStats : first) {
+      packages.add(usageStats.getPackageName());
     }
+
+    for (UsageStats usageStats : second) {
+      packages.remove(usageStats.getPackageName());
+    }
+
+    return packages.size() == 0;
+  }
 }

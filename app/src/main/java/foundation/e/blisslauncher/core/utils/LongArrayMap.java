@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 /e/.
+ * Copyright (c) 2018 Amit Kumar.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,54 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package foundation.e.blisslauncher.core.utils;
 
+package foundation.e.blisslauncher.core.utils;
 
 import android.util.LongSparseArray;
 import androidx.annotation.NonNull;
 import java.util.Iterator;
 
-/**
- * Extension of {@link LongSparseArray} with some utility methods.
- */
+/** Extension of {@link LongSparseArray} with some utility methods. */
 public class LongArrayMap<E> extends LongSparseArray<E> implements Iterable<E> {
 
-    public boolean containsKey(long key) {
-        return indexOfKey(key) >= 0;
-    }
+  public boolean containsKey(long key) {
+    return indexOfKey(key) >= 0;
+  }
 
-    public boolean isEmpty() {
-        return size() <= 0;
+  public boolean isEmpty() {
+    return size() <= 0;
+  }
+
+  @Override
+  public LongArrayMap<E> clone() {
+    return (LongArrayMap<E>) super.clone();
+  }
+
+  @NonNull
+  @Override
+  public Iterator<E> iterator() {
+    return new ValueIterator();
+  }
+
+  class ValueIterator implements Iterator<E> {
+
+    private int mNextIndex = 0;
+
+    @Override
+    public boolean hasNext() {
+      return mNextIndex < size();
     }
 
     @Override
-    public LongArrayMap<E> clone() {
-        return (LongArrayMap<E>) super.clone();
+    public E next() {
+      return valueAt(mNextIndex++);
     }
 
-    @NonNull
     @Override
-    public Iterator<E> iterator() {
-        return new ValueIterator();
+    public void remove() {
+      throw new UnsupportedOperationException();
     }
-
-    class ValueIterator implements Iterator<E> {
-
-        private int mNextIndex = 0;
-
-        @Override
-        public boolean hasNext() {
-            return mNextIndex < size();
-        }
-
-        @Override
-        public E next() {
-            return valueAt(mNextIndex++);
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
+  }
 }
