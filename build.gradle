@@ -101,4 +101,9 @@ dependencyUpdates {
     }
 }
 
+Object propOrDef(String propertyName, Object defaultValue) {
+    def propertyValue = project.properties[propertyName]
+    return propertyValue != null ? propertyValue : defaultValue
+}
+
 apply from: file("gradle/dependencyGraph.gradle")

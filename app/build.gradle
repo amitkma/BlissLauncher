@@ -11,8 +11,15 @@ def versionMajor = 1
 def versionMinor = 3
 def versionPatch = 2
 
+def useReleaseKeystore = rootProject.file("keystore/app-release.keystore").exists()
+
+ext {
+    ci = System.getenv("CI") == "true"
+}
+
 android {
     compileSdkVersion buildConfig.compileSdk
+
     defaultConfig {
         applicationId "foundation.e.blisslauncher"
         minSdkVersion buildConfig.minSdk
@@ -24,31 +31,50 @@ android {
         renderscriptTargetApi 28
         renderscriptSupportModeEnabled true
     }
+
+    signingConfigs {
+        debug {
+            storeFile rootProject.file("keystore/platform.keystore")
+            storePassword 'android'
+            keyAlias 'platform'
+            keyPassword 'android'
+        }
+
+        release {
+            if (useReleaseKeystore) {
+                storeFile rootProject.file("keystore/app-release.keystore")
+                storePassword propOrDef('BLISSLAUNCHER_RELEASE_KEYSTORE_PWD', "")
+                keyAlias 'blisslauncher'
+                keyPassword propOrDef('BLISSLAUNCHER_RELEASE_KEY_PWD', "")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (useReleaseKeystore) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
         }
+
         debug {
             signingConfig signingConfigs.debug
+            versionNameSuffix "-dev"
+            applicationIdSuffix ".debug"
         }
 
         applicationVariants.all { variant ->
             if (variant.buildType.name == "debug") {
                 variant.outputs.all { output ->
-                    outputFileName = "BlissLauncher-${variant.getFlavorName()}-${variant.versionName}.apk"
+                    outputFileName =
+                        "BlissLauncher-${variant.getFlavorName()}-${variant.versionName}.apk"
                 }
             }
-
-        }
-    }
-
-    signingConfigs {
-        debug {
-            storeFile file(getRootDir().path + "/keystore/platform.keystore")
-            storePassword 'android'
-            keyAlias 'platform'
-            keyPassword 'android'
         }
     }
 
@@ -79,6 +105,7 @@ android {
             events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
         }
     }
+
     compileOptions {
         targetCompatibility 1.8
         sourceCompatibility 1.8
@@ -113,12 +140,11 @@ dependencies {
     apiNougatImplementation 'org.cyanogenmod:platform.sdk:6.0'
     apiOreoImplementation files('libs/lineage-sdk-oreo.jar')
     apiQImplementation files('libs/lineage-sdk-q.jar')
-    debugImplementation 'com.amitshekhar.android:debug-db:1.0.4'
+    debugImplementation 'com.amitshekhar.android:debug-db:1.0.6'
 
     implementation 'org.greenrobot:eventbus:3.1.1'
 
     // Recents dependency
-
 
     // Support Libs
     implementation Libs.AndroidX.appcompat

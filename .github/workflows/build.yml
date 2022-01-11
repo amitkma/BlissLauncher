@@ -1,0 +1,70 @@
+name: App build and test
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ORG_GRADLE_PROJECT_BLISSLAUNCHER_RELEASE_KEYSTORE_PWD: ${{ secrets.ORG_GRADLE_PROJECT_BLISSLAUNCHER_RELEASE_KEYSTORE_PWD }}
+      ORG_GRADLE_PROJECT_BLISSLAUNCHER_RELEASE_KEY_PWD: ${{ secrets.ORG_GRADLE_PROJECT_BLISSLAUNCHER_RELEASE_KEY_PWD }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: set up JDK
+        uses: actions/setup-java@v1
+        with:
+          distribution: adopt
+          java-version: 11
+      - name: Decrypt secrets
+        run: ./release/decrypt-secrets.sh
+        env:
+          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - uses: burrunan/gradle-cache-action@v1
+        name: Build release and check
+        with:
+          gradle-dependencies-cache-key: |
+            buildSrc/**/Dependencies.kt
+            **/gradle-wrapper.properties
+          arguments: |
+            spotlessCheck
+            assembleRelease
+            testDebug
+
+      - name: Create release for tags
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          draft: true
+          files: |
+            app/build/outputs/apk/apiQ/release/app-apiQ-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean secrets
+        if: always()
+        run: ./scripts/clean-secrets.sh
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: blisslauncher-release
+          path: app/build/outputs/
+
+
+

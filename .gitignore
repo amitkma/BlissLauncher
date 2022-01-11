@@ -69,3 +69,12 @@ lint/tmp/
 #ktlint
 ktlint
 
+# Do not commit plain-text release keys
+app-release.keystore
+play-account.p12
+play-account.json
+passphrase
+
+# Do not commit firebase config
+google-services.json
+
