@@ -24,7 +24,7 @@ if [[ "${branch}" = "main" ]]; then
     NEEDS_TAG=$(git describe --contains "${GIT_COMMIT}")
     # Only tag if no tag already (would be better if the git describe command above could have a silent option)
     if [ -n "$NEEDS_TAG" ]; then
-        echo -e "$⚠️ Latest commit is already tagged. Aborting now..."
+        echo -e "⚠️ Latest commit is already tagged. Aborting now..."
         exit 0
     fi
 
@@ -35,8 +35,7 @@ if [[ "${branch}" = "main" ]]; then
 
     version="${major}.${minor}.${patch}-${build}"
     git tag -a "v${version}" -m "BlissLauncher release version ${version}"
-    echo -e "$❓ Do you want to push tag to remote now?[Y/n]: ${NOCOLOR}"
-    read -r -p "" response
+    read -r -p "❓ Do you want to push tag to remote now?[Y/n]: " response
     response=${response,,}
     if [[ "${response}" =~ ^(yes|y| ) ]] || [ -z "${response}" ]; then
         git push origin --tags
