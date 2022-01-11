@@ -5,18 +5,19 @@ import foundation.e.blisslauncher.buildsrc.ReleaseType
 
 buildscript {
     ext.buildConfig = [
-            'compileSdk': 30,
-            'minSdk'    : 26,
-            'targetSdk' : 20,
-            'version'   : [
-                    'major': 0,
-                    'minor': 0,
-                    'patch': 1,
-                    'build': "alpha",
-            ],
+        'compileSdk': 30,
+        'minSdk'    : 26,
+        'targetSdk' : 20,
+        'version'   : [
+            'major': 0,
+            'minor': 0,
+            'patch': 1,
+            'build': "alpha",
+        ],
     ]
 
-    ext.buildConfig.version['name'] = "${buildConfig.version.major}.${buildConfig.version.minor}.${buildConfig.version.patch}"
+    ext.buildConfig.version['name'] =
+        "${buildConfig.version.major}.${buildConfig.version.minor}.${buildConfig.version.patch}"
     ext.buildConfig.version['fullName'] = "${buildConfig.version.name}-${buildConfig.version.build}"
     def buildNumber
     if (buildConfig.version.build == 'alpha') {
@@ -26,8 +27,12 @@ buildscript {
     } else {
         buildNumber = 0
     }
-    ext.buildConfig.version['code'] = buildConfig.version.major * 1000000 + buildConfig.version.minor * 10000 + buildConfig.version.patch * 100 + buildNumber
-
+    ext.buildConfig.version['code'] = buildConfig.version.major * 1000000 +
+        buildConfig.version.minor *
+        10000 +
+        buildConfig.version.patch *
+        100 +
+        buildNumber
 
     ext.kotlin_version = '1.6.10'
     repositories {
@@ -47,7 +52,7 @@ buildscript {
 
 plugins {
     id "com.diffplug.spotless" version "6.1.2"
-    id 'com.github.ben-manes.versions' version "0.25.0"
+    id 'com.github.ben-manes.versions' version "0.41.0"
 }
 
 allprojects {
@@ -64,7 +69,8 @@ allprojects {
         }
         gradle.projectsEvaluated {
             tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = layout.files([frameworkJar] + (options.bootstrapClasspath.files as Iterable<File>))
+                options.bootstrapClasspath = layout.files(
+                    [frameworkJar] + (options.bootstrapClasspath.files as Iterable<File>))
             }
         }
     }
