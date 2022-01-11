@@ -29,7 +29,7 @@ jobs:
       - name: Decrypt secrets
         run: ./scripts/decrypt-secrets.sh
         env:
-          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
+          ENCRYPT_KEY: ${{ secrets.PASSPHRASE }}
 
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
