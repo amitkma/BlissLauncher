@@ -16,7 +16,6 @@ NOCOLOR="\033[0m"
 QUESTION_FLAG="${GREEN}?"
 NOTICE_FLAG="${CYAN}❯"
 WARNING_FLAG="${YELLOW}!"
-ERROR_FLAG="${RED}\U25CF"
 
 BUMPING_MSG="${NOTICE_FLAG} Bumping up version...${NOCOLOR}"
 PUSHING_MSG="${NOTICE_FLAG} Pushing new version to the ${WHITE}origin${CYAN}...${NOCOLOR}"
@@ -70,12 +69,12 @@ commit_and_push() {
 do_version_upgrade() {
     VERSION_UPGRADE_TYPE=$1
 
-    old_major=$((`cat app/build.gradle | grep "versionMajor = " | awk '{print $4}'`))
-    old_minor=$((`cat app/build.gradle | grep "versionMinor = " | awk '{print $4}'`))
-    old_patch=$((`cat app/build.gradle | grep "versionPatch = " | awk '{print $4}'`))
+    old_major=$(($(cat app/build.gradle | grep "versionMajor = " | awk '{print $4}')))
+    old_minor=$(($(cat app/build.gradle | grep "versionMinor = " | awk '{print $4}')))
+    old_patch=$(($(cat app/build.gradle | grep "versionPatch = " | awk '{print $4}')))
 
     if [[ "${VERSION_UPGRADE_TYPE,,}" = "major" ]]; then
-        echo -e ${BUMPING_MSG}
+        echo -e "${BUMPING_MSG}"
         echo -e "${NOTICE_FLAG} Current version: ${WHITE}${old_major}.${old_minor}.${old_patch}"
 
         new_major=$(($old_major + 1))
@@ -97,7 +96,7 @@ do_version_upgrade() {
         fi
 
     elif [[ "${VERSION_UPGRADE_TYPE,,}" = "minor" ]]; then
-        echo -e ${BUMPING_MSG}
+        echo -e "${BUMPING_MSG}"
         echo -e "${NOTICE_FLAG} Current version: ${WHITE}${old_major}.${old_minor}.${old_patch}"
 
         new_minor=$((old_minor + 1))
@@ -117,7 +116,7 @@ do_version_upgrade() {
         fi
 
     elif [[ "${VERSION_UPGRADE_TYPE,,}" = "patch" ]]; then
-        echo -e ${BUMPING_MSG}
+        echo -e "${BUMPING_MSG}"
         echo -e "${NOTICE_FLAG} Current version: ${WHITE}${old_major}.${old_minor}.${old_patch}"
 
         new_patch=$((old_patch + 1))

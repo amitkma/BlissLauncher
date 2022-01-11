@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Copyright (c) 2022 Amit Kumar.
@@ -23,7 +23,7 @@ decrypt() {
   gpg --quiet --batch --yes --decrypt --passphrase="$PASSPHRASE" --output "$OUTPUT" "$INPUT"
 }
 
-if [[ -n "$ENCRYPT_KEY" ]]; then
+if [ -n "$ENCRYPT_KEY" ]; then
   # Decrypt Release key
   decrypt "${ENCRYPT_KEY}" keystore/app-release.gpg keystore/app-release.keystore
 else

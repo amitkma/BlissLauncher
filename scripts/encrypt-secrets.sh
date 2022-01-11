@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Copyright (c) 2022 Amit Kumar.
@@ -23,7 +23,7 @@ encrypt() {
   gpg --batch --yes --passphrase="${PASSPHRASE}" --cipher-algo AES256 --symmetric --output "${OUTPUT}" "${INPUT}"
 }
 
-if [[ -n "$ENCRYPT_KEY" ]]; then
+if [ -n "$ENCRYPT_KEY" ]; then
   # Encrypt Release key
   encrypt "${ENCRYPT_KEY}" keystore/app-release.keystore keystore/app-release.gpg
 else
