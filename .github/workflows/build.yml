@@ -42,8 +42,9 @@ jobs:
             **/gradle-wrapper.properties
           arguments: |
             spotlessCheck
-            assembleRelease
+            assembleApiQRelease
             testDebug
+            lintApiQDebug
 
       - name: Create release for tags
         uses: softprops/action-gh-release@v1
@@ -63,8 +64,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: blisslauncher-release
+          name: build-outputs
           path: app/build/outputs/
 
-
-
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-reports
+          path: app/build/reports

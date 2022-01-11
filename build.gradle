@@ -64,7 +64,7 @@ allprojects {
         }
         gradle.projectsEvaluated {
             tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = files([frameworkJar] + (options.bootstrapClasspath.files as Iterable<File>))
+                options.bootstrapClasspath = layout.files([frameworkJar] + (options.bootstrapClasspath.files as Iterable<File>))
             }
         }
     }
@@ -80,7 +80,7 @@ subprojects {
             freeCompilerArgs += "-Xopt-in=kotlin.Experimental"
 
             // Set JVM target to 11
-            jvmTarget = JavaVersion.VERSION_11
+            jvmTarget = JavaVersion.VERSION_1_8
         }
     }
 }

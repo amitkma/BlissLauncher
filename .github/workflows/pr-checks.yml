@@ -55,7 +55,7 @@ jobs:
             buildSrc/**/Dependencies.kt
             **/gradle-wrapper.properties
           arguments: |
-            assembleDebug 
+            assembleApiQDebug
 
   test:
     name: Unit tests

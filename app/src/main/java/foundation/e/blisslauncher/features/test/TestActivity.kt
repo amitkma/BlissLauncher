@@ -113,6 +113,9 @@ import foundation.e.blisslauncher.features.shortcuts.ShortcutKey
 import foundation.e.blisslauncher.features.suggestions.AutoCompleteAdapter
 import foundation.e.blisslauncher.features.suggestions.SearchSuggestionUtil
 import foundation.e.blisslauncher.features.suggestions.SuggestionsResult
+import foundation.e.blisslauncher.features.test.LauncherState.NORMAL
+import foundation.e.blisslauncher.features.test.LauncherState.OVERVIEW
+import foundation.e.blisslauncher.features.test.LauncherState.OVERVIEW_PEEK
 import foundation.e.blisslauncher.features.test.RotationHelper.REQUEST_NONE
 import foundation.e.blisslauncher.features.test.dragndrop.DragController
 import foundation.e.blisslauncher.features.test.dragndrop.DragLayer
