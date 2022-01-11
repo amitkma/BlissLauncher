@@ -67,9 +67,7 @@ open class IconTextView @JvmOverloads constructor(
                 java.lang.Float.TYPE,
                 "dotScale"
             ) {
-                override fun get(iconTextView: IconTextView): Float {
-                    return iconTextView.dotScale
-                }
+                override fun get(iconTextView: IconTextView): Float { return iconTextView.dotScale }
 
                 override fun set(
                     iconTextView: IconTextView,
@@ -100,7 +98,9 @@ open class IconTextView @JvmOverloads constructor(
     }
 
     private lateinit var mDotRenderer: DotRenderer
+
     private lateinit var mUninstallRenderer: UninstallButtonRenderer
+
     private val mActivity: TestActivity = if (context is TestActivity) context
     else throw IllegalArgumentException("Cannot find TestActivity in context tree")
     private var mStayPressed: Boolean = false

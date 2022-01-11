@@ -70,14 +70,14 @@ public class BlissLauncher extends Application {
     }
 
     public IconsHandler getIconsHandler() {
-        if (iconsPackHandler == null) {
-            iconsPackHandler = new IconsHandler(this);
+        if (iconsPackHandler == null) { iconsPackHandler = new IconsHandler(this);
         }
 
         return iconsPackHandler;
     }
 
     public void resetIconsHandler() {
+
         iconsPackHandler = new IconsHandler(this);
     }
 

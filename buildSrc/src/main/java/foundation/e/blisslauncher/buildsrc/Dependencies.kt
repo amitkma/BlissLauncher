@@ -3,7 +3,7 @@ package foundation.e.blisslauncher.buildsrc
 object Versions {
     const val android_gradle_plugin = "7.0.4"
     const val dexcount_gradle_plugin = "2.0.0"
-    const val kotlin = "1.5.10"
+    const val kotlin = "1.6.10"
     const val timber = "4.7.1"
     const val junit = "4.12"
     const val ktlint = "0.43.2"
