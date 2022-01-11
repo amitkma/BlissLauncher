@@ -73,7 +73,7 @@ ktlint
 app-release.keystore
 play-account.p12
 play-account.json
-passphrase
+secrets/
 
 # Do not commit firebase config
 google-services.json
