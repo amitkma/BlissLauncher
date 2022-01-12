@@ -1,3 +1,5 @@
+name: Release apk
+
 on:
   release:
     types: [released]
@@ -8,5 +10,5 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-      - name: Release job
-        run: echo "Releasing job from released"
+      - name: Publish release apk to PlayStore
+        run: echo "Publishing apk to playstore"

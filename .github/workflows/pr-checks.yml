@@ -30,6 +30,14 @@ jobs:
             **/gradle-wrapper.properties
           arguments: |
             spotlessCheck
+            lintApiQDebug
+
+      - name: Upload lint reports
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: lint-reports
+          path: app/build/reports
 
   debug_build:
     name: Debug build
@@ -47,13 +55,13 @@ jobs:
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
       - uses: burrunan/gradle-cache-action@v1
-        name: Build debug
+        name: Assemble build
         with:
           gradle-dependencies-cache-key: |
             buildSrc/**/Dependencies.kt
             **/gradle-wrapper.properties
           arguments: |
-            assembleApiQDebug
+            assembleApiQ
 
   test:
     name: Unit tests
