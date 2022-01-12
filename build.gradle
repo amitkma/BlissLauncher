@@ -10,29 +10,19 @@ buildscript {
         'targetSdk' : 20,
         'version'   : [
             'major': 0,
-            'minor': 0,
-            'patch': 1,
-            'build': "alpha",
+            'minor': 1,
+            'patch': 0,
+            'rev': 1,
         ],
     ]
 
-    ext.buildConfig.version['name'] =
-        "${buildConfig.version.major}.${buildConfig.version.minor}.${buildConfig.version.patch}"
-    ext.buildConfig.version['fullName'] = "${buildConfig.version.name}-${buildConfig.version.build}"
-    def buildNumber
-    if (buildConfig.version.build == 'alpha') {
-        buildNumber = -2
-    } else if (buildConfig.version.build == 'beta') {
-        buildNumber = -1
-    } else {
-        buildNumber = 0
-    }
+    ext.buildConfig.version['fullName'] = "${buildConfig.version.name}.${buildConfig.version.rev}"
     ext.buildConfig.version['code'] = buildConfig.version.major * 1000000 +
         buildConfig.version.minor *
         10000 +
         buildConfig.version.patch *
         100 +
-        buildNumber
+        buildConfig.version.rev
 
     ext.kotlin_version = '1.6.10'
     repositories {
