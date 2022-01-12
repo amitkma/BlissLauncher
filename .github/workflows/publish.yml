@@ -1,0 +1,12 @@
+on:
+  release:
+    types: [published]
+
+jobs:
+  published:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Publishing job
+        run: echo "Publishing job from published"
