@@ -12,7 +12,7 @@ buildscript {
             'major': 0,
             'minor': 2,
             'patch': 0,
-            'rev': 0,
+            'rev': 1,
         ],
     ]
 
