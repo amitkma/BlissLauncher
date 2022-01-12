@@ -10,9 +10,9 @@ buildscript {
         'targetSdk' : 20,
         'version'   : [
             'major': 0,
-            'minor': 1,
+            'minor': 2,
             'patch': 0,
-            'rev': 3,
+            'rev': 0,
         ],
     ]
 
